@@ -36,7 +36,8 @@ SECRET_KEY = os.getenv('DJANGO_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['server.opensouth.io', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['server.opensouth.io', 'localhost', '127.0.0.1']
 
 DATABASES = {
         'default': {
