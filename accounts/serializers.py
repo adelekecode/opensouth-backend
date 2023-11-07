@@ -160,4 +160,4 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     
 class ImageUploadSerializer(serializers.Serializer):
-    image = Base64ImageField()
+    image = serializers.ImageField()

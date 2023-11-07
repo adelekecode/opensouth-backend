@@ -196,7 +196,6 @@ def user_login(request):
                         user_detail['first_name'] = user.first_name
                         user_detail['last_name'] = user.last_name
                         user_detail['email'] = user.email
-                        user_detail['phone'] = user.phone
                         user_detail['role'] = user.role
                         user_detail['is_admin'] = user.is_admin
                         user_detail['is_superuser'] = user.is_superuser
@@ -204,9 +203,6 @@ def user_login(request):
                         user_detail['refresh'] = str(refresh)
                         user_logged_in.send(sender=user.__class__,
                                             request=request, user=user)
-
-                        if user.role == 'admin':
-                            user_detail["modules"] = user.module_access
                             
                         data = {
     

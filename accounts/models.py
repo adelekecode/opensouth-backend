@@ -103,7 +103,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         
         self.is_deleted = True
         self.email = f"{random.randint(0,100000)}-deleted-{self.email}"
-        self.phone = f"{self.phone}-deleted-{random.randint(0,100000)}"
         self.save()
         
         return 
@@ -148,7 +147,6 @@ class ActivationOtp(models.Model):
     
     def is_valid(self):
         """Checks if the OTP has expires or not
-
         Returns:
             bool: Result of OTP check.
         """

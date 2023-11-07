@@ -147,6 +147,20 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+##AWS S3 settings
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_Access_Key")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_Secret_Access_Key")
+AWS_S3_REGION_NAME = os.getenv("AWS_Storage_Region")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_Storage_Bucket_Name")
+AWS_S3_CUSTOM_DOMAIN = "d1cc9gva10xzzu.cloudfront.net"
+# AWS_CLOUDFRONT_KEY_ID = os.getenv("AWS_Cloudfront_Key_ID")
+# AWS_CLOUDFRONT_KEY = str(os.getenv("AWS_Cloudfront_Private_Key").encode('utf-8').strip())
+# print(AWS_CLOUDFRONT_KEY)
+
+AWS_QUERYSTRING_EXPIRE = 180
 
 
 # Default primary key field type
@@ -194,7 +208,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
     'UPDATE_LAST_LOGIN': True,
     'SIGNING_KEY': SECRET_KEY,
@@ -247,18 +261,10 @@ DOMAIN = ""
 #OAuth credentials
 GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
 
-# Azure Blob Storage settings or use any storage you want
-AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
-AZURE_CONTAINER = os.getenv("AZURE_CONTAINER")
-AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
-AZURE_CONNECTION_TIMEOUT_SECS = 60
 
 
-DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage' #change to the correct storage backend from django-storages
-AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
 
-MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_CONTAINER}/'
-# MEDIA_ROOT = ''
+
 
 #use any email backend 
 """
