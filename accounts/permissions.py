@@ -1,5 +1,8 @@
+
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.permissions import (DjangoModelPermissions)
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
 
@@ -72,14 +75,19 @@ class UserTablePermissions(CustomBasePermissions):
         self.model = User
     
         
-        
 
-class DashboardPermission(BasePermission):
-    
-    def has_permission(self, request, view):
-        return bool(
-            request.user.is_authenticated and request.user.has_perm("accounts.view_dashboard") 
-        )
-        
 
 #put custom permissions here
+
+
+class IsAdmin(BasePermission):
+   
+    def has_permission(self, request, view):
+
+        if isinstance(request.user, AnonymousUser):
+            raise AuthenticationFailed(detail="Authentication credentials were not provided oh")
+        
+        if request.user.role == "admin":
+            return True
+        else:
+            raise AuthenticationFailed(detail="Authentication credentials were not provided")

@@ -9,15 +9,10 @@ User = get_user_model()
 
 
 
-
-
-
-
 class OrganisationSeriializer(serializers.ModelSerializer):
 
     users_data = serializers.ReadOnlyField()
     logo_url = serializers.ReadOnlyField()
-
 
     class Meta:
         model = Organisations
@@ -26,7 +21,7 @@ class OrganisationSeriializer(serializers.ModelSerializer):
 
 
 class DatasetSerializer(serializers.ModelSerializer):
-    
+
     publisher_data = serializers.ReadOnlyField()
     organisation_data = serializers.ReadOnlyField()
 
