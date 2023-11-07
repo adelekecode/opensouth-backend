@@ -31,7 +31,5 @@ RUN pip install --upgrade pip && \
 EXPOSE 3000
 
 
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:3000"]
-
 # Use the gunicorn_config.py as the Gunicorn configuration file
-# CMD ["gunicorn", "-c", "gunicorn_config.py", "backend_config.wsgi:application"]
+CMD ["gunicorn", "-c", "gunicorn_config.py", "config.wsgi:application"]
