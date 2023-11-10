@@ -12,8 +12,8 @@ from pathlib import Path
 from django.utils.timezone import timedelta
 
 from configurations import Configuration, values
-import firebase_admin
-from firebase_admin import credentials
+# import firebase_admin
+# from firebase_admin import credentials
 import json
 from dotenv import find_dotenv, load_dotenv
 
@@ -39,24 +39,24 @@ DEBUG = True
 ALLOWED_HOSTS = ['server.opensouth.io', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://server.opensouth.io', 'http://localhost', 'http://127.0.0.1']
 
-# DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3'
-#         }
-#     }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("db_name"),
-        'HOST': os.getenv("db_host"),
-        'USER': os.getenv("db_user"),
-        'PASSWORD': os.getenv("db_password"),
-        'PORT': os.getenv("db_port")
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3'
+        }
+    }
 
-    }
-    }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv("db_name"),
+#         'HOST': os.getenv("db_host"),
+#         'USER': os.getenv("db_user"),
+#         'PASSWORD': os.getenv("db_password"),
+#         'PORT': os.getenv("db_port")
+
+#     }
+# }
 
 # Application definition
 INSTALLED_APPS = [
