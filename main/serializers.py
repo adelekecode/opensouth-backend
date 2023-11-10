@@ -12,7 +12,8 @@ User = get_user_model()
 class OrganisationSeriializer(serializers.ModelSerializer):
 
     users_data = serializers.ReadOnlyField()
-    logo_url = serializers.ReadOnlyField()
+    logo = serializers.ImageField(required=False)
+    
 
     class Meta:
         model = Organisations

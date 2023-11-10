@@ -92,7 +92,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         
         if self.image:
             return self.image.url
-        return ""
+        return None
     
     def delete(self):
         
@@ -140,7 +140,7 @@ class ActivationOtp(models.Model):
         - expiry_date (datetime): Time at which the OTP expires.
     """
 
-    user  =models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    user  = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
     expiry_date = models.DateTimeField()
     

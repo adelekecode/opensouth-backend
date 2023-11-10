@@ -19,5 +19,5 @@ urlpatterns = [
     path('auth/fcm-token/', views.update_firebase_token),
     path("permissions/", views.PermissionList.as_view(), name="permissions"),
     path("activity-logs/", views.activity_logs),
-    path("auth/image-upload", views.image_upload, name="image-upload"),
+    path("auth/profile-image-upload/", views.image_upload, name="image-upload"),
 ]

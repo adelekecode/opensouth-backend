@@ -16,10 +16,9 @@ User = get_user_model()
 class Organisations(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organisations")
     name = models.CharField(max_length=650)
     description = models.TextField()
-    logo = models.ImageField(upload_to="organisation_logo/", blank=True, null=True)
+    logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,22 +33,20 @@ class Organisations(models.Model):
         self.save()
     
     @property
-    def logo_url(self):
-        if self.logo:
-            return self.logo.url
-        return ""
-    
-    @property
     def users_data(self):
-        return [model_to_dict(user, fields=["id", "first_name", "last_name", "email", "role"]) for user in self.users.all()]
+        list_data = []
+        users = self.users.all()
+        for user in users:
+            data = model_to_dict(user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+            data["image_url"] = user.image_url
+            list_data.append(data)
+        return list_data
+       
 
 
     
 
     
-
-
-
 
 
 
@@ -88,11 +85,6 @@ class Datasets(models.Model):
         self.is_deleted = True
         self.save()
 
-    @property
-    def image_url(self):
-        if self.image:
-            return self.image.url
-        return ""
     
     @property
     def tags_data(self):
@@ -101,7 +93,7 @@ class Datasets(models.Model):
     @property
     def organisation_data(self):
         if self.organisation:
-            return model_to_dict(self.organisation, fields=["id", "name", "description", "logo_url", "users_data"])
+            return model_to_dict(self.organisation, fields=["id", "name", "description", "users_data"])
         return None
     
     @property
