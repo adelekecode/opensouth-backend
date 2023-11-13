@@ -63,10 +63,10 @@ CSRF_TRUSTED_ORIGINS = ['https://server.opensouth.io', 'http://localhost', 'http
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'database-test',
-        'HOST': 'database-test.cum3h9xrzygu.us-west-1.rds.amazonaws.com',
-        'USER': 'opensouth1',
-        'PASSWORD': 'afsAyZlO5tTpYYqqkZPd',
+        'NAME': 'database-1',
+        'HOST': 'database-1.cum3h9xrzygu.us-west-1.rds.amazonaws.com',
+        'USER': 'postgres',
+        'PASSWORD': 'nb5YMVdBlzHEWRbMWYhV',
         'PORT': '5432'
 
     }
