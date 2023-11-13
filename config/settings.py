@@ -46,31 +46,31 @@ CSRF_TRUSTED_ORIGINS = ['https://server.opensouth.io', 'http://localhost', 'http
 #         }
 #     }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv("db_name"),
-#         'HOST': os.getenv("db_host"),
-#         'USER': os.getenv("db_user"),
-#         'PASSWORD': os.getenv("db_password"),
-#         'PORT': os.getenv("db_port")
-
-#     }
-# }
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'database-1',
-        'HOST': 'database-1.cum3h9xrzygu.us-west-1.rds.amazonaws.com',
-        'USER': 'postgres',
-        'PASSWORD': 'nb5YMVdBlzHEWRbMWYhV',
-        'PORT': '5432'
+        'NAME': os.getenv("db_name"),
+        'HOST': os.getenv("db_host"),
+        'USER': os.getenv("db_user"),
+        'PASSWORD': os.getenv("db_password"),
+        'PORT': os.getenv("db_port")
 
     }
 }
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'database-1',
+#         'HOST': 'database-1.cum3h9xrzygu.us-west-1.rds.amazonaws.com',
+#         'USER': 'postgres',
+#         'PASSWORD': 'nb5YMVdBlzHEWRbMWYhV',
+#         'PORT': '5432'
+
+#     }
+# }
 
 # Application definition
 INSTALLED_APPS = [
