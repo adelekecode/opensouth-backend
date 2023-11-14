@@ -176,7 +176,7 @@ def reset_password_otp_verification(request):
 @api_view([ 'POST'])
 def user_login(request):
     
-    """Allows users to log in to the platform. Sends the jwt refresh and access tokens. Check settings for token life time."""
+    """Allows users to log in to the platform. Sends the jwt refresh and access tokens."""
     
     if request.method == "POST":
         serializer = LoginSerializer(data=request.data)

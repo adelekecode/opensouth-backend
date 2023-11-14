@@ -12,8 +12,8 @@ from pathlib import Path
 from django.utils.timezone import timedelta
 
 from configurations import Configuration, values
-import firebase_admin
-from firebase_admin import credentials
+# import firebase_admin
+# from firebase_admin import credentials
 import json
 from dotenv import find_dotenv, load_dotenv
 
@@ -45,6 +45,8 @@ DATABASES = {
             'NAME': BASE_DIR / 'db.sqlite3'
         }
     }
+
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -342,3 +344,24 @@ if os.getenv("ENVIRONMENT") == "production":
     
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(',')
     CSRF_TRUSTED_ORIGINS = os.getenv("TRUSTED_ORIGINS").split(',')
+
+
+
+if os.getenv("ENVIRONMENT") == "development":
+    """
+    The in-development settings and the default configuration.
+    """
+    DEBUG = True
+
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("db_name"),
+            'HOST': os.getenv("db_host"),
+            'USER': os.getenv("db_user"),
+            'PASSWORD': os.getenv("db_password"),
+            'PORT': os.getenv("db_port")
+
+        }
+    }
