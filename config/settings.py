@@ -39,38 +39,14 @@ DEBUG = True
 ALLOWED_HOSTS = ['server.opensouth.io', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://server.opensouth.io', 'http://localhost', 'http://127.0.0.1']
 
-# DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3'
-#         }
-#     }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("db_name"),
-        'HOST': os.getenv("db_host"),
-        'USER': os.getenv("db_user"),
-        'PASSWORD': os.getenv("db_password"),
-        'PORT': os.getenv("db_port")
-
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3'
+        }
     }
-}
 
 
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'database-1',
-#         'HOST': 'database-1.cum3h9xrzygu.us-west-1.rds.amazonaws.com',
-#         'USER': 'postgres',
-#         'PASSWORD': 'nb5YMVdBlzHEWRbMWYhV',
-#         'PORT': '5432'
-
-#     }
-# }
 
 # Application definition
 INSTALLED_APPS = [
@@ -368,3 +344,24 @@ if os.getenv("ENVIRONMENT") == "production":
     
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(',')
     CSRF_TRUSTED_ORIGINS = os.getenv("TRUSTED_ORIGINS").split(',')
+
+
+
+if os.getenv("ENVIRONMENT") == "development":
+    """
+    The in-development settings and the default configuration.
+    """
+    DEBUG = True
+
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("db_name"),
+            'HOST': os.getenv("db_host"),
+            'USER': os.getenv("db_user"),
+            'PASSWORD': os.getenv("db_password"),
+            'PORT': os.getenv("db_port")
+
+        }
+    }

@@ -102,3 +102,67 @@ def add_delete_user_to_organisation(request, org_pk, user_pk):
             organisation.users.remove(user)
             return Response({"message": "user removed successfully"}, status=status.HTTP_200_OK)
         return Response({"error": "user does not exist in user list"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class DatasetView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request):
+        
+        serializer = DatasetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if organisation in data:
+            organisation_id = data['organisation_id']
+        try:
+            organisation = Organisations.objects.get(pk=organisation_id)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation instance not found"}, status=400)
+        
+        if not organisation.users.filter(pk=request.user.id).exists():
+            return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
+        if Datasets.objects.filter(title=data['title'], organisation=organisation).exists():
+            return Response({"error": "dataset with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer.validated_data["publisher"] = request.user
+        serializer.validated_data["organisation"] = organisation if organisation is not None else None
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+class CreateDatasetFiles(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(methods=['POST'], request_body=DatasetFileSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request, pk):
+
+        serializer = DatasetFileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        serializer.validated_data["dataset"] = dataset
+        serializer.validated_data["uploaded_by"] = request.user
+
+        serializer.save()
+
+        data = {
+            "message": "file uploaded successfully",
+            "data": serializer.data
+        }
+        return Response(data, status=200)
+
+
+

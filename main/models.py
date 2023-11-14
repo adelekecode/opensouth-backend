@@ -121,3 +121,34 @@ class Tags(models.Model):
         self.save()
         
     
+
+
+
+class DatasetFiles(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, related_name="dataset_files")
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files")
+    file = models.FileField(upload_to="dataset_files/")
+    format = models.CharField(max_length=100)
+    size = models.CharField(max_length=100)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f"{self.dataset.title} -- {self.format} -- {self.size}"
+    
+    def delete(self):
+        self.is_deleted = True
+        self.save()
+
+    @property
+    def file_url(self):
+        return self.file.url
+    
+    @property
+    def dataset_data(self):
+        return model_to_dict(self.dataset, fields=["id", "title", "image", "organisation_data", "status", "publisher_data"])
+    
