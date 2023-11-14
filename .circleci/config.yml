@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            ssh -i /path/to/private/key ${SSH_USERNAME}@${SERVER_IP} "cd /home/${PROJECT_FOLDER} && python3 -m venv venv"
+            ssh -i /path/to/private/key ${SSH_USERNAME}@${SERVER_IP} "cd /home/${PROJECT_FOLDER} && sudo docker-compose build"
           
       - run:
           name: Run Docker Container
@@ -39,7 +39,7 @@ jobs:
      
 # Sequential workflow
 workflows:
-  # Name the workflow
+
   myWorkflow:
     jobs:
       # - setup_db:
