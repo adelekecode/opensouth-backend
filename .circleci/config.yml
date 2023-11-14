@@ -55,7 +55,7 @@ workflows:
       #     requires:
       #       - setup_db
 
-      - update_deploy:
+      - deploy:
           filters:
             branches:
                 only:
