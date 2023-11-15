@@ -11,6 +11,26 @@ User = get_user_model()
 
 
 
+class Categories(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=650)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name}"
+    
+    def delete(self):
+        self.is_deleted = True
+        self.save()
+
+    
+
+
+
+
 
 
 class Organisations(models.Model):
@@ -66,6 +86,7 @@ class Datasets(models.Model):
     title = models.CharField(max_length=650)
     license = models.CharField(max_length=650)
     description = models.TextField()
+    category = models.ForeignKey(Categories, on_delete=models.CASCADE, related_name="category_datasets", null=True)
     update_frequency = models.CharField(max_length=650)
     image = models.ImageField(upload_to="dataset_images/", blank=True, null=True)
     organisation = models.ForeignKey(Organisations, on_delete=models.CASCADE, null=True, related_name="organisation_datasets")
@@ -149,6 +170,10 @@ class DatasetFiles(models.Model):
         return self.file.url
     
     @property
+    def uploader_data(self):
+        return model_to_dict(self.uploaded_by, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+    
+    @property
     def dataset_data(self):
-        return model_to_dict(self.dataset, fields=["id", "title", "image", "organisation_data", "status", "publisher_data"])
+        return model_to_dict(self.dataset, fields=["id", "title", "image", "organisation_data", "status"])
     

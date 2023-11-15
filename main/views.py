@@ -4,6 +4,7 @@ from .models import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -29,7 +30,42 @@ import os
 
 User = get_user_model()
 
+class CategoryView(APIView):
 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request):
+        if request.user.role != "admin":
+            return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = CategorySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        name = serializer.validated_data['name']
+
+        if Categories.objects.filter(name=name).exists():
+            return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+    def get(self, request):
+
+        categories = Categories.objects.filter(is_deleted=False)
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = CategorySerializer
+    queryset = Categories.objects.filter(is_deleted=False)
+    lookup_field = 'pk'
 
 
 class OrganisationView(APIView):

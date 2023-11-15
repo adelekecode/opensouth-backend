@@ -37,9 +37,19 @@ class DatasetSerializer(serializers.ModelSerializer):
 class DatasetFileSerializer(serializers.ModelSerializer):
 
     dataset_data = serializers.ReadOnlyField()
+    uploader_data = serializers.ReadOnlyField()
     file_url = serializers.ReadOnlyField()
     file = serializers.FileField(required=True)
 
     class Meta:
         model = DatasetFiles
+        fields = "__all__"
+
+
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Categories
         fields = "__all__"
