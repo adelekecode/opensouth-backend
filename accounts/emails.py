@@ -60,7 +60,7 @@ def signup_mail(email, otp, name):
     )
 
 
-    
+
 def requestotp_mail(email, otp, name):
  
     requests.post(
@@ -98,3 +98,34 @@ def welcome_mail(email, name):
             }
     )
 
+
+
+
+   
+def reset_password_mail(email, url, name):
+
+    requests.post(
+
+        url="https://api.useplunk.com/v1/send",
+
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+
+        },
+
+        json={
+            "to": email,
+            "subject": "Reset Password",
+            "body": f"""
+            <html> <body> <p>Hi {name},</p> <p>Click on the link below to reset your password.</p> <p><a href="{url}">Reset Password</a></p>
+            <p>
+If you encounter any issues during the verification process or have any questions about our platform,
+please don't hesitate to reach out to our friendly support team at support@opensouth.io</p>
+<p>Best regards,</p>
+<p>Open South.</p> 
+</body> </html>
+            """
+        }
+    )
+    

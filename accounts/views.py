@@ -21,6 +21,11 @@ from .models import ActivityLog
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Permission, Group
 from django.db.models import Q
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import requests
 import os
 
@@ -365,5 +370,61 @@ def image_upload(request):
         user.save()
         
         return Response({"message": "upload successful"}, status=status.HTTP_200_OK)
-    
-    
+
+
+
+
+
+
+class PasswordResetView(APIView):
+    serializer_class = EmailSerializer
+
+
+    @swagger_auto_schema(method="post", request_body=EmailSerializer())
+    @action(methods=["post"], detail=True)
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        user = User.objects.filter(email=email, is_deleted=False).first()
+        if user:
+            if user.is_active:
+                token_generator = PasswordResetTokenGenerator()
+                token = token_generator.make_token(user)
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                referer = request.META.get('HTTP_REFERER')
+                reset_url = f"{referer}reset-password/{uidb64}/{token}"
+                reset_password_mail(email=email, url=reset_url, name=user.first_name)
+
+                return Response({"message": "Reset password mail sent"}, status=200)
+            
+            else:
+                return Response({"error": "account not activated"}, status=403)
+        
+        else:
+            return Response({"error": "user not found"}, status=404)
+        
+
+
+
+class PasswordResetConfirmView(APIView):
+
+    @swagger_auto_schema(method="post", request_body=PasswordResetSerializer())
+    @action(methods=["post"], detail=True)
+    def post(self, request, uidb64, token):
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        
+        if user is not None and PasswordResetTokenGenerator().check_token(user, token):
+            serializer = PasswordResetSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user.set_password(serializer.data.get("password"))
+            user.save()
+            return Response({"message": "password reset successful"}, status=200)
+        
+        else:
+            return Response({"error": "invalid token"}, status=400)
