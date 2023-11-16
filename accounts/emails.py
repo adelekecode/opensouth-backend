@@ -58,6 +58,9 @@ def signup_mail(email, otp, name):
                 }
             }
     )
+
+
+    
 def requestotp_mail(email, otp, name):
  
     requests.post(
