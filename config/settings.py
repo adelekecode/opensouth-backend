@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig',
     'main.apps.MainConfig',
+    'admins.apps.AdminConfig',
     "social_auth",
     
     'rest_framework',
