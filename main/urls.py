@@ -16,4 +16,6 @@ urlpatterns = [
     path('datasets/files/<uuid:pk>/', CreateDatasetFiles.as_view(), name="datasets_files"),
     path('categories/', CategoryView.as_view(), name="categories"),
     path('categories/<uuid:pk>/', CategoryDetailView.as_view(), name="categories"),
+    path('datasets/views/<uuid:pk>/', DatasetViewsView.as_view(), name="datasets_views"),
+    
 ]

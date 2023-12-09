@@ -388,6 +388,7 @@ class PasswordResetView(APIView):
         
         email = serializer.validated_data['email']
         user = User.objects.filter(email=email, is_deleted=False).first()
+        
         if user:
             if user.is_active:
                 token_generator = PasswordResetTokenGenerator()

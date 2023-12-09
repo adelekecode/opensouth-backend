@@ -25,6 +25,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     publisher_data = serializers.ReadOnlyField()
     organisation_data = serializers.ReadOnlyField()
+    views = serializers.ReadOnlyField()
     organisation_id = serializers.CharField(required=False)
 
 
@@ -53,3 +54,12 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Categories
         fields = "__all__"
+
+
+class DatasetViewsSerializer(serializers.ModelSerializer):
+
+    dataset_data = serializers.ReadOnlyField()
+    class Meta:
+        model = DatasetViews
+        fields = "__all__"
+

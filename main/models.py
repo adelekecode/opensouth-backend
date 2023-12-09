@@ -35,11 +35,16 @@ class Categories(models.Model):
 
 class Organisations(models.Model):
 
+    """ users is the group of users that are in the organisation
+        user is the owner of the organisation and the person who has administartive rights to the organisation
+    """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=650)
     description = models.TextField()
     logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="organisation_user")
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -63,16 +68,13 @@ class Organisations(models.Model):
         return list_data
        
 
-
     
-
-    
-
 
 
 class Datasets(models.Model):
 
     status_choices = (
+
         ("pending", "pending"),
         ("further_review", "further_review"),
         ("published", "published"),
@@ -82,7 +84,7 @@ class Datasets(models.Model):
 
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    published_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="publisher")
+    published_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="publisher")
     title = models.CharField(max_length=650)
     license = models.CharField(max_length=650)
     description = models.TextField()
@@ -115,6 +117,16 @@ class Datasets(models.Model):
     def organisation_data(self):
         if self.organisation:
             return model_to_dict(self.organisation, fields=["id", "name", "description", "users_data"])
+        return None
+    
+    @property
+    def views(self):
+        from .models import DatasetViews
+        data = DatasetViews.objects.filter(dataset=self)
+        if data:
+            view = data.first()
+            return model_to_dict(view, fields=["count", "created_at", "updated_at"])
+        
         return None
     
     @property
@@ -176,3 +188,28 @@ class DatasetFiles(models.Model):
     def dataset_data(self):
         return model_to_dict(self.dataset, fields=["id", "title", "image", "organisation_data", "status"])
     
+
+
+
+
+
+class DatasetViews(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dataset = models.OneToOneField(Datasets, on_delete=models.CASCADE, related_name="dataset_views")
+    count = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f"{self.dataset.title}"
+    
+    def delete(self):
+        self.is_deleted = True
+        self.save()
+    
+    @property
+    def dataset_data(self):
+        return model_to_dict(self.dataset, fields=["title", "status", "publisher_data", "organisation_data", "category"])
