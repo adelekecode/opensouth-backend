@@ -25,6 +25,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     publisher_data = serializers.ReadOnlyField()
     organisation_data = serializers.ReadOnlyField()
+    views = serializers.ReadOnlyField()
     organisation_id = serializers.CharField(required=False)
 
 
@@ -37,9 +38,28 @@ class DatasetSerializer(serializers.ModelSerializer):
 class DatasetFileSerializer(serializers.ModelSerializer):
 
     dataset_data = serializers.ReadOnlyField()
+    uploader_data = serializers.ReadOnlyField()
     file_url = serializers.ReadOnlyField()
     file = serializers.FileField(required=True)
 
     class Meta:
         model = DatasetFiles
         fields = "__all__"
+
+
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Categories
+        fields = "__all__"
+
+
+class DatasetViewsSerializer(serializers.ModelSerializer):
+
+    dataset_data = serializers.ReadOnlyField()
+    class Meta:
+        model = DatasetViews
+        fields = "__all__"
+

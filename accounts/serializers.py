@@ -161,3 +161,26 @@ class PermissionSerializer(serializers.ModelSerializer):
     
 class ImageUploadSerializer(serializers.Serializer):
     image = serializers.ImageField()
+
+
+class EmailSerializer(serializers.Serializer):
+    
+    email = serializers.EmailField(required=True)
+
+
+
+
+class PasswordResetSerializer(serializers.Serializer):
+
+    password = serializers.CharField(required=True)
+    re_password = serializers.CharField(required=True)
+
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs["re_password"]:
+            raise ValidationError(detail={"error":"passwords don't match"})
+        return super().validate(attrs)
+
+
+
+    

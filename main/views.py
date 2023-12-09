@@ -4,6 +4,7 @@ from .models import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -13,6 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+
 from accounts.permissions import *
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
@@ -29,7 +32,42 @@ import os
 
 User = get_user_model()
 
+class CategoryView(APIView):
 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request):
+        if request.user.role != "admin":
+            return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = CategorySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        name = serializer.validated_data['name']
+
+        if Categories.objects.filter(name=name).exists():
+            return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+    def get(self, request):
+
+        categories = Categories.objects.filter(is_deleted=False)
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = CategorySerializer
+    queryset = Categories.objects.filter(is_deleted=False)
+    lookup_field = 'pk'
 
 
 class OrganisationView(APIView):
@@ -49,6 +87,8 @@ class OrganisationView(APIView):
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         serializer.instance.users.add(request.user)
+        serializer.instance.user = request.user
+        serializer.instance.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
@@ -118,20 +158,22 @@ class DatasetView(APIView):
         serializer = DatasetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if organisation in data:
-            organisation_id = data['organisation_id']
-        try:
-            organisation = Organisations.objects.get(pk=organisation_id)
-        except Organisations.DoesNotExist:
-            return Response({"error": "organisation instance not found"}, status=400)
+        if 'organisation' in data:
+            organisation_id = data['organisation']
+            organisation = get_object_or_404(Organisations, pk=organisation_id)
         
-        if not organisation.users.filter(pk=request.user.id).exists():
-            return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
-        if Datasets.objects.filter(title=data['title'], organisation=organisation).exists():
-            return Response({"error": "dataset with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            if not organisation.users.filter(pk=request.user.id).exists():
+                return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
+            
+        # if 'tags' in data:
+
         
-        serializer.validated_data["publisher"] = request.user
-        serializer.validated_data["organisation"] = organisation if organisation is not None else None
+        if Datasets.objects.filter(title=data['title']).exists():
+            return Response({"error": "dataset with this name already exists "}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer.validated_data["published_by"] = request.user
+        serializer.validated_data["organisation"] = get_object_or_404(Organisations, pk=data['organisation']) if 'organisation' in data else None
+        serializer.validated_data["category"] = get_object_or_404(Categories, pk=data['category']) if 'category' in data else None
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -166,3 +208,35 @@ class CreateDatasetFiles(APIView):
 
 
 
+
+
+
+class DatasetViewsView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(methods=['POST'], request_body=DatasetViewsSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request, pk):
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        dataset_view = DatasetViews.objects.filter(dataset=dataset)
+
+        if dataset_view.exists():
+            dataset_view = dataset_view.first()
+            dataset_view.views += 1
+            dataset_view.save()
+            return Response({"message": "dataset view updated"}, status=200)
+        else:
+            dataset_view = DatasetViews.objects.create(dataset=dataset)
+            dataset_view.views += 1
+            dataset_view.save()
+
+            return Response({"message": "dataset views updated"}, status=200)
+
+        

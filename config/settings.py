@@ -39,12 +39,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['server.opensouth.io', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://server.opensouth.io', 'http://localhost', 'http://127.0.0.1']
 
-DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3'
-        }
-    }
 
 
 
@@ -63,6 +57,7 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig',
     'main.apps.MainConfig',
+    'admins.apps.AdminConfig',
     "social_auth",
     
     'rest_framework',
@@ -329,7 +324,7 @@ LOGGING['formatters'] = {
 if os.getenv("ENVIRONMENT") == "production":
 
     """
-    The in-development settings and the default configuration.
+    The in-production settings.
     """
     DEBUG = False
 
@@ -365,3 +360,15 @@ if os.getenv("ENVIRONMENT") == "development":
 
         }
     }
+
+
+
+if os.getenv("ENVIRONMENT") == "local":
+    
+    DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3'
+            }
+        }
+
