@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from .serializers import *
 from .models import *
+from accounts.serializers import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
+from .email import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -15,7 +17,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
-
+from django.utils.text import slugify
 from accounts.permissions import *
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
@@ -46,9 +48,11 @@ class CategoryView(APIView):
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
+        slug = slugify(name)
 
-        if Categories.objects.filter(name=name).exists():
+        if Categories.objects.filter(slug=slug).exists():
             return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -82,8 +86,9 @@ class OrganisationView(APIView):
         serializer = OrganisationSeriializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
+        slug = slugify(name)
 
-        if Organisations.objects.filter(name=name).exists():
+        if Organisations.objects.filter(slug=slug).exists():
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         serializer.instance.users.add(request.user)
@@ -112,36 +117,63 @@ class OrganisationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-
-@api_view(['POST', 'DELETE'])
+@swagger_auto_schema(methods=['POST'], request_body=EmailSerializer())
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def add_delete_user_to_organisation(request, org_pk, user_pk):
+def add_user_to_organisation(request, org_pk):
+
     if request.method == "POST":
-        organisation = Organisations.objects.get(pk=org_pk, users=request.user)
+        serializer = EmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        
         try:
-            user = User.objects.get(pk=user_pk)
+            organisation = Organisations.objects.get(pk=org_pk)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if organisation.user != request.user:
+            return Response({"error": "you are not authorised to add user to this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
         if organisation.users.filter(pk=user.id).exists():
             return Response({"error": "user already exists in user list"}, status=status.HTTP_400_BAD_REQUEST)
+        
         organisation.users.add(user)
+        organisation_add_users(organisation=organisation, user=user)
         return Response({"message": "user added successfully"}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_user_from_organisation(request, org_pk, user_pk):
     
-    
-    elif request.method == "DELETE":
-        organisation = Organisations.objects.get(pk=org_pk, users=request.user)
+    if request.method == "DELETE":
+        
         try:
+            organisation = Organisations.objects.get(pk=org_pk)
             user = User.objects.get(pk=user_pk)
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if organisation.user != request.user:
+            return Response({"error": "you are not authorised to delete user from this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if organisation.users.filter(pk=user.id).exists():
             organisation.users.remove(user)
+            organisation_delete_users(organisation=organisation, user=user)
+
             return Response({"message": "user removed successfully"}, status=status.HTTP_200_OK)
-        return Response({"error": "user does not exist in user list"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"error": "user does not exist in user list"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

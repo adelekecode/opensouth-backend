@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 import uuid 
 from django.forms import model_to_dict
+from django.utils.text import slugify
 # Create your models here.
 
 
@@ -15,9 +16,15 @@ class Categories(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+
+        super(Categories, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name}"
@@ -41,6 +48,7 @@ class Organisations(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
     description = models.TextField()
     logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
@@ -48,6 +56,12 @@ class Organisations(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+
+        super(Organisations, self).save(*args, **kwargs)
 
 
     def __str__(self):
@@ -86,6 +100,7 @@ class Datasets(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     published_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="publisher")
     title = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
     license = models.CharField(max_length=650)
     description = models.TextField()
     category = models.ForeignKey(Categories, on_delete=models.CASCADE, related_name="category_datasets", null=True)
@@ -99,6 +114,11 @@ class Datasets(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+
+        super(Datasets, self).save(*args, **kwargs)
 
 
     def __str__(self):
