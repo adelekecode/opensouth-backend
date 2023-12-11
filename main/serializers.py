@@ -24,9 +24,10 @@ class OrganisationSeriializer(serializers.ModelSerializer):
 class DatasetSerializer(serializers.ModelSerializer):
 
     publisher_data = serializers.ReadOnlyField()
-    organisation_data = serializers.ReadOnlyField()
     views = serializers.ReadOnlyField()
     organisation_id = serializers.CharField(required=False)
+    category_id = serializers.CharField(required=True)
+
 
 
     class Meta:

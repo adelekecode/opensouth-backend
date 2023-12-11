@@ -190,26 +190,35 @@ class DatasetView(APIView):
         serializer = DatasetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if 'organisation' in data:
-            organisation_id = data['organisation']
-            organisation = get_object_or_404(Organisations, pk=organisation_id)
-        
-            if not organisation.users.filter(pk=request.user.id).exists():
-                return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
-            
-        # if 'tags' in data:
 
+        category_id = data['category_id']
+        organisation_id = data['organisation_id']
+        title = data['title']
+        slug = slugify(title)
+
+        if Datasets.objects.filter(slug=slug).exists():
+            return Response({"error": "dataset with this title already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            category = Categories.objects.get(pk=category_id)
+        except Categories.DoesNotExist:
+            return Response({"error": "category does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if Datasets.objects.filter(title=data['title']).exists():
-            return Response({"error": "dataset with this name already exists "}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer.validated_data["published_by"] = request.user
-        serializer.validated_data["organisation"] = get_object_or_404(Organisations, pk=data['organisation']) if 'organisation' in data else None
-        serializer.validated_data["category"] = get_object_or_404(Categories, pk=data['category']) if 'category' in data else None
+        if organisation_id != None:
+            try:
+                organisation = Organisations.objects.get(pk=organisation_id)
+            except Organisations.DoesNotExist:
+                return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            serializer.validated_data['organisation'] = organisation
+
+        serializer.validated_data['user'] = request.user
+        serializer.validated_data['category'] = category
         serializer.save()
+
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
+      
 
 
 class CreateDatasetFiles(APIView):

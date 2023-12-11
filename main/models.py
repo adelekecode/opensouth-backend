@@ -98,7 +98,7 @@ class Datasets(models.Model):
 
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    published_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="publisher")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="dataset_user")
     title = models.CharField(max_length=650)
     slug = models.SlugField(max_length=650, null=True)
     license = models.CharField(max_length=650)
@@ -116,13 +116,13 @@ class Datasets(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+        self.slug = slugify(self.title)
 
         super(Datasets, self).save(*args, **kwargs)
 
 
     def __str__(self):
-        return f"{self.title} -- {self.status} -- {self.published_by.email}"
+        return f"{self.title} -status- {self.status}"
     
     def delete(self):
         self.is_deleted = True
@@ -133,11 +133,6 @@ class Datasets(models.Model):
     def tags_data(self):
         return [model_to_dict(tag, fields=["id", "name"]) for tag in self.tags.all()]
     
-    @property
-    def organisation_data(self):
-        if self.organisation:
-            return model_to_dict(self.organisation, fields=["id", "name", "description", "users_data"])
-        return None
     
     @property
     def views(self):
@@ -151,9 +146,11 @@ class Datasets(models.Model):
     
     @property
     def publisher_data(self):
-        return model_to_dict(self.published_by, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
-    
-    
+        if self.organisation:
+            return model_to_dict(self.organisation, fields=["id", "name", "description", "users_data"])
+        else:
+            return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+       
 
 
 class Tags(models.Model):
