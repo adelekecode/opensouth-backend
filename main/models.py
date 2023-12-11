@@ -34,6 +34,13 @@ class Categories(models.Model):
         self.save()
 
     
+    @property
+    def data_count(self):
+        from .models import Datasets
+        return Datasets.objects.filter(category=self).count()
+   
+
+    
 
 
 
@@ -80,6 +87,17 @@ class Organisations(models.Model):
             data["image_url"] = user.image_url
             list_data.append(data)
         return list_data
+    
+    @property
+    def logo_url(self):
+        if self.logo:
+            return self.logo.url
+        return None
+    
+    @property
+    def data_count(self):
+        from .models import Datasets
+        return Datasets.objects.filter(organisation=self).count()
        
 
     
@@ -147,16 +165,31 @@ class Datasets(models.Model):
     @property
     def publisher_data(self):
         if self.organisation:
-            return model_to_dict(self.organisation, fields=["id", "name", "description", "users_data"])
+            return model_to_dict(self.organisation, fields=["id", "name", "slug", "logo_url"])
         else:
             return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
-       
+    
+    @property
+    def files_count(self):
+        
+        from .models import DatasetFiles
+        return DatasetFiles.objects.filter(dataset=self).count()
+
+
+    @property
+    def dataset_files(self):
+        from .models import DatasetFiles
+        files = DatasetFiles.objects.filter(dataset=self).order_by("-created_at")
+        if files:
+            return [model_to_dict(file, fields=["id", "format", "size", "file_url"]) for file in files]
+        return None
 
 
 class Tags(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -164,6 +197,11 @@ class Tags(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Tags, self).save(*args, **kwargs)
     
 
     def delete(self):

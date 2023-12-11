@@ -11,8 +11,12 @@ User = get_user_model()
 
 class OrganisationSeriializer(serializers.ModelSerializer):
 
-    users_data = serializers.ReadOnlyField()
+
     logo = serializers.ImageField(required=False)
+    data_count = serializers.ReadOnlyField()
+    users_data = serializers.ReadOnlyField()
+
+
     
 
     class Meta:
@@ -23,8 +27,10 @@ class OrganisationSeriializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
 
+    files_count = serializers.ReadOnlyField()
     publisher_data = serializers.ReadOnlyField()
     views = serializers.ReadOnlyField()
+    dataset_files = serializers.ReadOnlyField()
     organisation_id = serializers.CharField(required=False)
     category_id = serializers.CharField(required=True)
 
@@ -52,6 +58,8 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
 
+    data_count = serializers.ReadOnlyField()
+
     class Meta:
         model = Categories
         fields = "__all__"
@@ -64,3 +72,12 @@ class DatasetViewsSerializer(serializers.ModelSerializer):
         model = DatasetViews
         fields = "__all__"
 
+
+
+class TagsSerializer(serializers.ModelSerializer):
+
+    keywords = serializers.ListField(child=serializers.CharField(max_length=100), required=True)
+
+    class Meta:
+        model = Tags
+        fields = "__all__"

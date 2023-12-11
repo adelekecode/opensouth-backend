@@ -281,3 +281,80 @@ class DatasetViewsView(APIView):
             return Response({"message": "dataset views updated"}, status=200)
 
         
+
+
+class TagsView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(methods=['POST'], request_body=TagsSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request, pk):
+
+        serializers = TagsSerializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        tags = serializers.validated_data['keywords']
+
+        for tag in tags:
+            slug = slugify(tag)
+            if Tags.objects.filter(slug=slug).exists():
+                tag = Tags.objects.get(slug=slug)
+                dataset.tags.add(tag)
+            else:
+                tag = Tags.objects.create(name=tag)
+                dataset.tags.add(tag)
+
+        return Response({"message": "tags added successfully"}, status=200)
+    
+
+    def delete(self, request, pk):
+
+        serializers = TagsSerializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        tags = serializers.validated_data['keywords']
+
+        for tag in tags:
+            slug = slugify(tag)
+            if Tags.objects.filter(slug=slug).exists():
+                tag = Tags.objects.get(slug=slug)
+                dataset.tags.remove(tag)
+            else:
+                return Response({"error": f"tag does not exist {tag}"}, status=400)
+
+        return Response({"message": "tags removed successfully"}, status=200)
+
+
+class UserOrganisationDatasets(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if request.user not in organisation.users.all():
+            return Response({"error": "you are not authorised to view this"}, status=401)
+        
+
+        datasets = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
+        serializer = DatasetSerializer(datasets, many=True)
+
+        return Response(serializer.data, status=200)
+    

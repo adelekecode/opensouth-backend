@@ -18,5 +18,7 @@ urlpatterns = [
     path('categories/', CategoryView.as_view(), name="categories"),
     path('categories/<uuid:pk>/', CategoryDetailView.as_view(), name="categories"),
     path('datasets/views/<uuid:pk>/', DatasetViewsView.as_view(), name="datasets_views"),
+    path('datasets/tags/<uuid:pk>/', TagsView.as_view(), name="tags"),
+    path('user-organisation/datasets/<uuid:pk>/', UserOrganisationDatasets.as_view(), name="user_organisation_datasets"),
 
 ]
