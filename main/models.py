@@ -193,7 +193,8 @@ class Datasets(models.Model):
                 data = model_to_dict(file, fields=["id", "file_url", "format", "size", "sha256"])
                 list_data.append(data)
             return list_data
-        return None
+        
+        return []
 
 
 class Tags(models.Model):
