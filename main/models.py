@@ -151,7 +151,7 @@ class Datasets(models.Model):
     
     @property
     def tags_data(self):
-        return [model_to_dict(tag, fields=["name", "slug"]) for tag in self.tags.all()]
+        return [model_to_dict(tag, fields=["name"]) for tag in self.tags.all()]
     
     
     @property

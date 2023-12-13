@@ -28,10 +28,12 @@ class OrganisationSeriializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
 
-    files_count = serializers.ReadOnlyField()
+    
     publisher_data = serializers.ReadOnlyField()
-    views = serializers.ReadOnlyField()
     files = serializers.ReadOnlyField()
+    tags_data = serializers.ReadOnlyField()
+    views = serializers.ReadOnlyField()
+    files_count = serializers.ReadOnlyField()
 
     
 
@@ -77,6 +79,7 @@ class DatasetViewsSerializer(serializers.ModelSerializer):
 class TagsSerializer(serializers.ModelSerializer):
 
     keywords = serializers.ListField(child=serializers.CharField(max_length=100), required=True)
+    name = serializers.CharField(max_length=100, required=False)
 
     class Meta:
         model = Tags
