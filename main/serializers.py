@@ -15,6 +15,7 @@ class OrganisationSeriializer(serializers.ModelSerializer):
     logo = serializers.ImageField(required=False)
     data_count = serializers.ReadOnlyField()
     users_data = serializers.ReadOnlyField()
+    logo_url = serializers.ReadOnlyField()
 
 
     
@@ -30,10 +31,9 @@ class DatasetSerializer(serializers.ModelSerializer):
     files_count = serializers.ReadOnlyField()
     publisher_data = serializers.ReadOnlyField()
     views = serializers.ReadOnlyField()
-    dataset_files = serializers.ReadOnlyField()
-    organisation_id = serializers.CharField(required=False)
-    category_id = serializers.CharField(required=True)
+    files = serializers.ReadOnlyField()
 
+    
 
 
     class Meta:
@@ -45,7 +45,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 class DatasetFileSerializer(serializers.ModelSerializer):
 
     dataset_data = serializers.ReadOnlyField()
-    uploader_data = serializers.ReadOnlyField()
+    uploaded_by = serializers.ReadOnlyField()
     file_url = serializers.ReadOnlyField()
     file = serializers.FileField(required=True)
 

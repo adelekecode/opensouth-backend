@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 import uuid 
 from django.forms import model_to_dict
+import hashlib
 from django.utils.text import slugify
 # Create your models here.
 
@@ -149,7 +150,7 @@ class Datasets(models.Model):
     
     @property
     def tags_data(self):
-        return [model_to_dict(tag, fields=["id", "name"]) for tag in self.tags.all()]
+        return [model_to_dict(tag, fields=["name", "slug"]) for tag in self.tags.all()]
     
     
     @property
@@ -160,28 +161,37 @@ class Datasets(models.Model):
             view = data.first()
             return model_to_dict(view, fields=["count", "created_at", "updated_at"])
         
-        return None
+        return 0
     
     @property
     def publisher_data(self):
         if self.organisation:
-            return model_to_dict(self.organisation, fields=["id", "name", "slug", "logo_url"])
+            data = model_to_dict(self.organisation, fields=["id", "type", "name", "slug", "logo_url"])
+            data["type"] = "organisation"
+            data["logo_url"] = self.organisation.logo_url            
+            return data
         else:
-            return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
-    
+            data = model_to_dict(self.user, fields=["id", "type", "first_name", "last_name", "email", "role", "image_url"])
+            data["image_url"] = self.user.image_url
+            data["type"] = "individual"
+            return data
+        
     @property
     def files_count(self):
-        
+
         from .models import DatasetFiles
         return DatasetFiles.objects.filter(dataset=self).count()
 
-
     @property
-    def dataset_files(self):
+    def files(self):
         from .models import DatasetFiles
-        files = DatasetFiles.objects.filter(dataset=self).order_by("-created_at")
+        files = DatasetFiles.objects.filter(dataset=self)
         if files:
-            return [model_to_dict(file, fields=["id", "format", "size", "file_url"]) for file in files]
+            list_data = []
+            for file in files:
+                data = model_to_dict(file, fields=["id", "file_url", "format", "size", "sha256"])
+                list_data.append(data)
+            return list_data
         return None
 
 
@@ -215,9 +225,10 @@ class DatasetFiles(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, related_name="dataset_files")
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files")
     file = models.FileField(upload_to="dataset_files/")
     format = models.CharField(max_length=100)
+    sha256 = models.CharField(max_length=100, null=True)
     size = models.CharField(max_length=100)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -231,13 +242,18 @@ class DatasetFiles(models.Model):
         self.is_deleted = True
         self.save()
 
+
+    def save(self, *args, **kwargs):
+        self.sha256 = hashlib.sha256(self.file.read()).hexdigest()
+        super(DatasetFiles, self).save(*args, **kwargs)
+
     @property
     def file_url(self):
         return self.file.url
     
     @property
-    def uploader_data(self):
-        return model_to_dict(self.uploaded_by, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+    def uploaded_by(self):
+        return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
     
     @property
     def dataset_data(self):

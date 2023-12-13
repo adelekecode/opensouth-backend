@@ -42,8 +42,8 @@ class CategoryView(APIView):
     @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request):
-        if request.user.role != "admin":
-            return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
+        # if request.user.role != "admin":
+        #     return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -185,14 +185,15 @@ class DatasetView(APIView):
 
     @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
     @action(detail=True, methods=['POST'])
-    def post(self, request):
+    def post(self, request, cat_pk):
         
         serializer = DatasetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        category_id = data['category_id']
-        organisation_id = data['organisation_id']
+        organisation = request.GET.get('organisation_id', None)
+
+       
         title = data['title']
         slug = slugify(title)
 
@@ -200,13 +201,14 @@ class DatasetView(APIView):
             return Response({"error": "dataset with this title already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            category = Categories.objects.get(pk=category_id)
+            category = Categories.objects.get(pk=cat_pk)
         except Categories.DoesNotExist:
             return Response({"error": "category does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if organisation_id != None:
+        if organisation:
+
             try:
-                organisation = Organisations.objects.get(pk=organisation_id)
+                organisation = Organisations.objects.get(pk=organisation)
             except Organisations.DoesNotExist:
                 return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
             serializer.validated_data['organisation'] = organisation

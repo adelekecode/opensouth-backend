@@ -26,7 +26,7 @@ User = get_user_model()
 
 class AdminDatatsetView(APIView):
 
-    permission_classes = [IsAdmin]
+    # permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
