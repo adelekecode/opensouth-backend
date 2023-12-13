@@ -85,6 +85,7 @@ class Organisations(models.Model):
         users = self.users.all()
         for user in users:
             data = model_to_dict(user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+            data["id"] = user.id
             data["image_url"] = user.image_url
             list_data.append(data)
         return list_data
