@@ -257,7 +257,7 @@ class DatasetFiles(models.Model):
         self.sha256 = hashlib.sha256(self.file.read()).hexdigest()
 
         if DatasetFiles.objects.filter(sha256=self.sha256).exists():
-            raise Exception("File already exists")
+            raise Exception("File with similar content already exists")
         
         super(DatasetFiles, self).save(*args, **kwargs)
 

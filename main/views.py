@@ -98,11 +98,6 @@ class OrganisationView(APIView):
         serializer.instance.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-
-    def get(self, request):
-        organisations = Organisations.objects.filter(users=request.user, is_deleted=False)
-        serializer = OrganisationSeriializer(organisations, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 
@@ -377,3 +372,31 @@ class UserOrganisationDatasets(APIView):
 
         return Response(serializer.data, status=200)
     
+
+
+
+class UserDataset(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        datasets = Datasets.objects.filter(user=request.user, is_deleted=False).order_by('-created_at')
+        serializer = DatasetSerializer(datasets, many=True)
+
+        return Response(serializer.data, status=200)
+    
+
+
+class UserOrganisation(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        organisations = Organisations.objects.filter(users=request.user, is_deleted=False).order_by('-created_at')
+        serializer = OrganisationSeriializer(organisations, many=True)
+
+        return Response(serializer.data, status=200)
