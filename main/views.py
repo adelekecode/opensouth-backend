@@ -26,6 +26,7 @@ from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Permission, Group
 from django.db.models import Q
+from rest_framework.pagination import LimitOffsetPagination
 import requests
 import os
 
@@ -40,6 +41,8 @@ class CategoryView(APIView):
 
     # permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    serializer_class = CategorySerializer
+    queryset = Categories.objects.filter(is_deleted=False)
 
     @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
     @action(detail=True, methods=['POST'])
@@ -61,9 +64,15 @@ class CategoryView(APIView):
 
     def get(self, request):
 
-        categories = Categories.objects.filter(is_deleted=False)
+        categories = Categories.objects.filter(is_deleted=False).order_by('-created_at')
         serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        data = {
+            "count": categories.count(),
+            "data": serializer.data
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
     
 
 
@@ -180,6 +189,7 @@ class DatasetView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+
     @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request, cat_pk):
@@ -287,6 +297,7 @@ class DatasetViewsView(APIView):
             dataset_view.views += 1
             dataset_view.save()
             return Response({"message": "dataset view updated"}, status=200)
+        
         else:
             dataset_view = DatasetViews.objects.create(dataset=dataset)
             dataset_view.views += 1
@@ -351,52 +362,52 @@ class TagsView(APIView):
         return Response({"message": "tags removed successfully"}, status=200)
 
 
-class UserOrganisationDatasets(APIView):
+
+
+class UserDataset(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
 
-    def get(self, request, pk):
+    def get_queryset(self):
+        return Datasets.objects.filter(user=self.request.user, is_deleted=False).order_by('-created_at')
+    
+
+
+class UserOrganisation(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrganisationSeriializer
+    queryset = Organisations.objects.filter(is_deleted=False)
+
+    def get_queryset(self):
+        return Organisations.objects.filter(users=self.request.user, is_deleted=False).order_by('-created_at')
+    
+
+
+
+class UserOrganisationDatasets(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
 
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=404)
         
-        if request.user not in organisation.users.all():
+        if self.request.user not in organisation.users.all():
             return Response({"error": "you are not authorised to view this"}, status=401)
         
 
-        datasets = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
-        serializer = DatasetSerializer(datasets, many=True)
-
-        return Response(serializer.data, status=200)
-    
-
-
-
-class UserDataset(APIView):
-
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-
-        datasets = Datasets.objects.filter(user=request.user, is_deleted=False).order_by('-created_at')
-        serializer = DatasetSerializer(datasets, many=True)
-
-        return Response(serializer.data, status=200)
-    
-
-
-class UserOrganisation(APIView):
-
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-
-        organisations = Organisations.objects.filter(users=request.user, is_deleted=False).order_by('-created_at')
-        serializer = OrganisationSeriializer(organisations, many=True)
-
-        return Response(serializer.data, status=200)
+        return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')

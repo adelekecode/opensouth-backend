@@ -14,6 +14,8 @@ from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, No
 from accounts.models import *
 from accounts.serializers import *
 from rest_framework.views import APIView
+from rest_framework.pagination import LimitOffsetPagination
+
 
 
 # Create your views here.
@@ -24,17 +26,15 @@ User = get_user_model()
 
 
 
-class AdminDatatsetView(APIView):
+class AdminDatatsetView(generics.ListAPIView):
 
     # permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
+    pagination_class = LimitOffsetPagination
 
-    def get(self, request):
-
-        datasets = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
-        serializer = DatasetSerializer(datasets, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
 
 

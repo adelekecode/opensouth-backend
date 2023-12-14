@@ -19,7 +19,7 @@ urlpatterns = [
     path('categories/<uuid:pk>/', CategoryDetailView.as_view(), name="categories"),
     path('datasets/views/<uuid:pk>/', DatasetViewsView.as_view(), name="datasets_views"),
     path('datasets/tags/<uuid:pk>/', TagsView.as_view(), name="tags"),
-    path('organisations/<uuid:pk>/datasets/', UserOrganisationDatasets.as_view(), name="user_organisation_datasets"),
+    path('user/organisations/<uuid:pk>/datasets/', UserOrganisationDatasets.as_view(), name="user_organisation_datasets"),
     path('user/datasets/', UserDataset.as_view(), name="user_datasets"),
     path('user/organisations/', UserOrganisation.as_view(), name="user_organisations"),
 
