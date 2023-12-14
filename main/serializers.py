@@ -47,13 +47,15 @@ class DatasetSerializer(serializers.ModelSerializer):
 class DatasetFileSerializer(serializers.ModelSerializer):
 
     dataset_data = serializers.ReadOnlyField()
-    uploaded_by = serializers.ReadOnlyField()
     file_url = serializers.ReadOnlyField()
     file = serializers.FileField(required=True)
+    uploaded_by = serializers.ReadOnlyField()
 
     class Meta:
         model = DatasetFiles
         fields = "__all__"
+
+        
 
 
 
@@ -61,6 +63,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
 
     data_count = serializers.ReadOnlyField()
+    image_url = serializers.ReadOnlyField()
 
     class Meta:
         model = Categories

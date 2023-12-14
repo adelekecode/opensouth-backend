@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 import uuid 
 from django.forms import model_to_dict
+from django.core.exceptions import ValidationError
 import hashlib
 from django.utils.text import slugify
 # Create your models here.
@@ -17,6 +18,7 @@ class Categories(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=650)
+    image = models.ImageField(upload_to="category_images/", null=True)
     slug = models.SlugField(max_length=650, null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,6 +29,7 @@ class Categories(models.Model):
 
         super(Categories, self).save(*args, **kwargs)
 
+
     def __str__(self):
         return f"{self.name}"
     
@@ -34,6 +37,11 @@ class Categories(models.Model):
         self.is_deleted = True
         self.save()
 
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return None
     
     @property
     def data_count(self):
@@ -179,7 +187,6 @@ class Datasets(models.Model):
         
     @property
     def files_count(self):
-
         from .models import DatasetFiles
         return DatasetFiles.objects.filter(dataset=self).count()
 
@@ -191,6 +198,7 @@ class Datasets(models.Model):
             list_data = []
             for file in files:
                 data = model_to_dict(file, fields=["id", "file_url", "format", "size", "sha256"])
+                data["file_url"] = file.file_url
                 list_data.append(data)
             return list_data
         
@@ -226,8 +234,8 @@ class Tags(models.Model):
 class DatasetFiles(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, related_name="dataset_files")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files")
+    dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, related_name="dataset_files", null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files", null=True)
     file = models.FileField(upload_to="dataset_files/")
     format = models.CharField(max_length=100)
     sha256 = models.CharField(max_length=100, null=True)
@@ -247,6 +255,10 @@ class DatasetFiles(models.Model):
 
     def save(self, *args, **kwargs):
         self.sha256 = hashlib.sha256(self.file.read()).hexdigest()
+
+        if DatasetFiles.objects.filter(sha256=self.sha256).exists():
+            raise Exception("File already exists")
+        
         super(DatasetFiles, self).save(*args, **kwargs)
 
     @property
@@ -259,7 +271,7 @@ class DatasetFiles(models.Model):
     
     @property
     def dataset_data(self):
-        return model_to_dict(self.dataset, fields=["id", "title", "image", "organisation_data", "status"])
+        return model_to_dict(self.dataset, fields=["id", "title", "image_url", "organisation_data", "status"])
     
 
 

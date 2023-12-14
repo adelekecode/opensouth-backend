@@ -1,6 +1,8 @@
+import hashlib
 from django.shortcuts import render
 from .serializers import *
 from .models import *
+from django.db import IntegrityError
 from accounts.serializers import *
 from rest_framework import status
 from rest_framework.response import Response
@@ -36,7 +38,7 @@ User = get_user_model()
 
 class CategoryView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
     @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
@@ -238,14 +240,29 @@ class CreateDatasetFiles(APIView):
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
-        serializer.validated_data["dataset"] = dataset
-        serializer.validated_data["uploaded_by"] = request.user
+       
 
-        serializer.save()
+        file = serializer.validated_data['file']
+        format = serializer.validated_data['format']
+        size = serializer.validated_data['size']
+
+
+        try:
+            d_set = DatasetFiles.objects.create(
+                dataset=dataset,
+                user=request.user,  
+                file=file,
+                format=format,
+                size=size
+              
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+       
 
         data = {
             "message": "file uploaded successfully",
-            "data": serializer.data
+            "data": DatasetFileSerializer(d_set).data
         }
         return Response(data, status=200)
 
