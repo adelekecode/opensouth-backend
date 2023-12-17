@@ -105,7 +105,6 @@ def reset_password_mail(email, url, name):
             "body": f"""
             <html>
                 <body>
-                    <img src="https://d1cc9gva10xzzu.cloudfront.net/dataset_files/opensouth.jpg" alt="Open South" width="200" height="200">
                     <p>Hi {name},</p>
                     <p>Need to change your password, No problem. Let us give you a new one.</p>
                     <p><a href="{url}">RESET PASSWORD</a></p>
