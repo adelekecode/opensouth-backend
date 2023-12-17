@@ -2,7 +2,7 @@
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.permissions import (DjangoModelPermissions)
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
 
@@ -91,3 +91,21 @@ class IsAdmin(BasePermission):
             return True
         else:
             raise AuthenticationFailed(detail="Authentication credentials were not provided")
+
+
+
+
+
+class PublicPermissions(BasePermission):
+   
+    def has_permission(self, request, view):
+
+        if isinstance(request.user, AnonymousUser) is not True:
+            raise PermissionDenied(detail="Unauthorized access  -- Forbidden")
+           
+        key = request.GET.get("key")
+        if key == "public":
+
+            return True
+        else:
+            raise PermissionDenied(detail="Unauthorized access -- Forbidden")

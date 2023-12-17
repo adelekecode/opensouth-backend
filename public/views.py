@@ -3,6 +3,7 @@ from main.serializers import *
 from main.models import *
 from rest_framework import status
 from rest_framework.response import Response
+from accounts.permissions import *
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 # from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -33,6 +34,8 @@ User = get_user_model()
 
 class PublicCategoryView(APIView):
 
+    permission_classes = [PublicPermissions]
+
     def get(self, request):
         categories = Categories.objects.filter(is_deleted=False).order_by('-created_at')
         serializer = CategorySerializer(categories, many=True)
@@ -42,6 +45,7 @@ class PublicCategoryView(APIView):
 
 class PublicCategoryDetailView(generics.RetrieveAPIView):
     
+    permission_classes = [PublicPermissions]
     serializer_class = CategorySerializer
     queryset = Categories.objects.filter(is_deleted=False).order_by('-created_at')
     lookup_field = 'slug'
@@ -52,13 +56,15 @@ class PublicCategoryDetailView(generics.RetrieveAPIView):
 
 class PublicOrganisationView(generics.ListAPIView):
 
+    permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
 
 class PublicOrganisationDetailView(generics.RetrieveAPIView):
-        
+
+    permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
     lookup_field = 'slug'
@@ -67,9 +73,10 @@ class PublicOrganisationDetailView(generics.RetrieveAPIView):
 
 class PublicDatasetView(generics.ListAPIView):
 
+    permission_classes = [PublicPermissions]
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
     search_fields = ['title', 'category__name', 'tags__name']
@@ -121,18 +128,21 @@ class PublicDatasetView(generics.ListAPIView):
     
 
 class PublicDatasetDetailView(generics.RetrieveAPIView):
-        
+    
+    permission_classes = [PublicPermissions]
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
+
+        
 
 
 
 
 
 class PublicCounts(APIView):
-
+    permission_classes = [PublicPermissions]
 
     def get(self, request):
 
