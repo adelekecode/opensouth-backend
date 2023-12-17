@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 
-class OrganisationSeriializer(serializers.ModelSerializer):
+class OrganisationSerializer(serializers.ModelSerializer):
 
 
     logo = serializers.ImageField(required=False)

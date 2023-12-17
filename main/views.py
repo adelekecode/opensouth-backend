@@ -90,11 +90,11 @@ class OrganisationView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(methods=['POST'], request_body=OrganisationSeriializer())
+    @swagger_auto_schema(methods=['POST'], request_body=OrganisationSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request):
 
-        serializer = OrganisationSeriializer(data=request.data)
+        serializer = OrganisationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
         slug = slugify(name)
@@ -116,7 +116,7 @@ class OrganisationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = OrganisationSeriializer
+    serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False)
     lookup_field = 'pk'
 
@@ -381,7 +381,7 @@ class UserOrganisation(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     pagination_class = LimitOffsetPagination
     permission_classes = [IsAuthenticated]
-    serializer_class = OrganisationSeriializer
+    serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False)
 
     def get_queryset(self):

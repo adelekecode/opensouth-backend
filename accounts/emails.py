@@ -103,19 +103,19 @@ def reset_password_mail(email, url, name):
             "to": email,
             "subject": "Reset Password",
             "body": f"""
-            <html> <body>
-                <src="https://open-south-frontend.vercel.app/assets/logo-1ab2b399.svg" alt="Open South" width="200" height="200">
-             
-               <p>Hi {name},</p> <p>Click on the link below to reset your password.</p> <p><a href="{url}">Reset Password</a></p>
-            <p>
-If you encounter any issues during the verification process or have any questions about our platform,
-please don't hesitate to reach out to our friendly support team at support@opensouth.io</p>
-<p>Best regards,</p>
-<p>Open South.</p> 
-</body> </html>
+            <html>
+                <body>
+                    <img src="https://d1cc9gva10xzzu.cloudfront.net/dataset_files/opensouth.jpg" alt="Open South" width="200" height="200">
+                    <p>Hi {name},</p>
+                    <p>Need to change your password, No problem. Let us give you a new one.</p>
+                    <p><a href="{url}">RESET PASSWORD</a></p>
+                    <p>If you did not initiate this password reset or feel that your account may have been accessed by someone else,
+                    please reach out to support@opensouth.io.</p>
+                    <p>Best regards,</p>
+                    <p>Open South.</p>
+                </body>
+            </html>
             """
         }
     )
-    
-
 

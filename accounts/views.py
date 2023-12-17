@@ -270,6 +270,9 @@ def logout_view(request):
         return Response({"message": "failed", "error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+
 @swagger_auto_schema(method="patch",request_body=FirebaseSerializer())
 @api_view(["PATCH"])
 @authentication_classes([JWTAuthentication])

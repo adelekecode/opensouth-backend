@@ -58,9 +58,11 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'main.apps.MainConfig',
     'admins.apps.AdminConfig',
+    'public.apps.PublicConfig',
     "social_auth",
     
     'rest_framework',
+    'django_filters',
     'djoser',
     'drf_yasg',
     'coreapi',
@@ -195,13 +197,14 @@ DJOSER = {
 
 
 REST_FRAMEWORK = {
-    
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 
 
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    # "PAGE_SIZE": 10,
     
 }
 
