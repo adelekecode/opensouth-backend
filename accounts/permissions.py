@@ -101,7 +101,7 @@ class PublicPermissions(BasePermission):
     def has_permission(self, request, view):
 
         if isinstance(request.user, AnonymousUser) is not True:
-            raise PermissionDenied(detail="Unauthorized access  -- Forbidden")
+            return True
            
         key = request.GET.get("key")
         if key == "public":
