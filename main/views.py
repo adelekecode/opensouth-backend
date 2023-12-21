@@ -55,7 +55,7 @@ class CategoryView(APIView):
         name = serializer.validated_data['name']
         slug = slugify(name)
 
-        if Categories.objects.filter(slug=slug, is_deleted=True).exists():
+        if Categories.objects.filter(slug=slug).exists():
             return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer.save()

@@ -36,6 +36,8 @@ class Categories(models.Model):
     
     def delete(self):
         self.is_deleted = True
+        self.name = f"{self.name} -deleted-"
+        self.slug = f"{self.slug} -deleted-"
         self.save()
 
     @property
@@ -86,6 +88,8 @@ class Organisations(models.Model):
     
     def delete(self):
         self.is_deleted = True
+        self.name = f"{self.name} -deleted-"
+        self.slug = f"{self.slug} -deleted-"
         self.save()
     
     @property
@@ -155,6 +159,8 @@ class Datasets(models.Model):
     
     def delete(self):
         self.is_deleted = True
+        self.name = f"{self.title} -deleted-"
+        self.slug = f"{self.slug} -deleted-"
         self.save()
 
     
@@ -227,6 +233,8 @@ class Tags(models.Model):
 
     def delete(self):
         self.is_deleted = True
+        self.name = f"{self.name} -deleted-"
+        self.slug = f"{self.slug} -deleted-"
         self.save()
         
     
@@ -251,6 +259,7 @@ class DatasetFiles(models.Model):
     
     def delete(self):
         self.is_deleted = True
+        self.sha256 = f"{self.sha256} -deleted-"
         self.save()
 
 
