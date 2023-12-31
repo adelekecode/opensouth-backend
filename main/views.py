@@ -294,13 +294,14 @@ class DatasetViewsView(APIView):
 
         if dataset_view.exists():
             dataset_view = dataset_view.first()
-            dataset_view.views += 1
+            dataset_view.count += 1
             dataset_view.save()
+            
             return Response({"message": "dataset view updated"}, status=200)
         
         else:
             dataset_view = DatasetViews.objects.create(dataset=dataset)
-            dataset_view.views += 1
+            dataset_view.count += 1
             dataset_view.save()
 
             return Response({"message": "dataset views updated"}, status=200)
