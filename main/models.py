@@ -184,12 +184,18 @@ class Datasets(models.Model):
         if self.organisation:
             data = model_to_dict(self.organisation, fields=["id", "type", "name", "slug", "logo_url"])
             data["type"] = "organisation"
-            data["logo_url"] = self.organisation.logo_url            
+            data["logo_url"] = self.organisation.logo_url
+            data["id"] = self.organisation.id
+            data["slug"] = self.organisation.slug     
+
             return data
+        
         else:
             data = model_to_dict(self.user, fields=["id", "type", "first_name", "last_name", "email", "role", "image_url"])
             data["image_url"] = self.user.image_url
             data["type"] = "individual"
+            data["id"] = self.user.id
+
             return data
         
     @property
