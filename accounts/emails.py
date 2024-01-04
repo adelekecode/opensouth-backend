@@ -106,7 +106,7 @@ def reset_password_mail(email, url, name):
             <html>
                 <body>
                     <p>Hi {name},</p>
-                    <p>Need to change your password, No problem. Let us give you a new one.</p>
+                    <p>Need to change your password?, No problem. Let us give you a new one.</p>
                     <p><a href="{url}">RESET PASSWORD</a></p>
                     <p>If you did not initiate this password reset or feel that your account may have been accessed by someone else,
                     please reach out to support@opensouth.io.</p>

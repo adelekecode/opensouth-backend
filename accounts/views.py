@@ -399,7 +399,7 @@ class PasswordResetView(APIView):
                 uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                 referer = request.META.get('HTTP_REFERER')
                 reset_url = f"{referer}reset-password/{uidb64}/{token}"
-                reset_password_mail(email=email, url=reset_url, name=user.first_name)
+                reset_password_mail(email=email, url=reset_url, name=user.first_name.Capitalize())
 
                 return Response({"message": "Reset password mail sent"}, status=200)
             
