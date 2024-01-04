@@ -286,8 +286,6 @@ class CreateDatasetFiles(APIView):
 
 class DatasetViewsView(APIView):
 
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(methods=['POST'], request_body=DatasetViewsSerializer())
     @action(detail=True, methods=['POST'])

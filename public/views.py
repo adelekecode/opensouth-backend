@@ -156,3 +156,18 @@ class PublicCounts(APIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+
+
+
+
+
+class PopularDataset(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    def get(self, request):
+
+        datasets = Datasets.objects.filter(is_deleted=False).order_by('-views')[:5]
+        serializer = DatasetSerializer(datasets, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
