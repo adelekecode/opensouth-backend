@@ -28,7 +28,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
 
-    coordinates = serializers.CharField(required=False)
+    coordinates = serializers.CharField(read_only=True)
 
     
     publisher_data = serializers.ReadOnlyField()

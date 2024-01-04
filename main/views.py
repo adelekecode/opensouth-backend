@@ -198,7 +198,7 @@ class DatasetView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        coordinates = data['coordinates']
+        coordinates = request.data.get('coordinates')
         country = data['spatial_coverage']
 
         organisation = request.GET.get('organisation_id', None)
@@ -226,6 +226,7 @@ class DatasetView(APIView):
         serializer.validated_data['user'] = request.user
         serializer.validated_data['category'] = category
         serializer.validated_data['geojson'] = {
+
             "country": country,
             "coordinates": coordinates
         }
