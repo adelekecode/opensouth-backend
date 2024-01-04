@@ -314,4 +314,17 @@ class DatasetViews(models.Model):
     
     @property
     def dataset_data(self):
-        return model_to_dict(self.dataset, fields=["title", "status", "publisher_data", "organisation_data", "category"])
+        from .models import Datasets
+
+        data = Datasets.objects.get(pk=self.dataset.pk)
+
+        return {
+            "slug": data.slug,
+            "title": data.title,
+            "image": data.image_url if data.image else None,
+            "publisher_data": data.publisher_data
+        }
+
+
+       
+
