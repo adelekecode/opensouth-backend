@@ -418,3 +418,23 @@ class UserOrganisationDatasets(generics.ListAPIView):
         
 
         return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
+    
+
+
+
+
+
+class DatasetDownloadCount(APIView):
+
+
+    def post(self, request, pk):
+
+        files = get_object_or_404(DatasetFiles, pk=pk)
+
+        files.download_count += 1
+        files.save()
+
+        return Response({"message": "download count updated"}, status=200)
+    
+
+

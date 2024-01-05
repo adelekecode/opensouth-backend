@@ -113,6 +113,17 @@ class Organisations(models.Model):
     def data_count(self):
         from .models import Datasets
         return Datasets.objects.filter(organisation=self).count()
+    
+    @property
+    def downloads_count(self):
+
+        from .models import DatasetFiles
+        files = DatasetFiles.objects.filter(dataset__organisation=self)
+        count = 0
+        for file in files:
+            count += file.download_count
+        
+        return count
        
 
     
@@ -256,6 +267,7 @@ class DatasetFiles(models.Model):
     format = models.CharField(max_length=100)
     sha256 = models.CharField(max_length=100, null=True)
     size = models.CharField(max_length=100)
+    download_count = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
