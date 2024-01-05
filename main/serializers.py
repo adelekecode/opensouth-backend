@@ -15,6 +15,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
     logo = serializers.ImageField(required=False)
     data_count = serializers.ReadOnlyField()
     downloads_count = serializers.ReadOnlyField()
+    views_count = serializers.ReadOnlyField()
     users_data = serializers.ReadOnlyField()
     logo_url = serializers.ReadOnlyField()
 

@@ -349,8 +349,6 @@ def activity_logs(request):
     
     logs = ActivityLog.objects.filter(is_deleted=False, user=request.user).order_by("-date_created").values("action")[:10]
     
-    
-    
     return Response(logs, status=status.HTTP_200_OK)
 
 
@@ -365,11 +363,8 @@ def image_upload(request):
         serializer = ImageUploadSerializer(data=request.data)
         
         serializer.is_valid(raise_exception=True)
-        
         user = request.user
-        
         user.image = serializer.validated_data.get("image")
-        
         user.save()
         
         return Response({"message": "upload successful"}, status=status.HTTP_200_OK)
@@ -394,6 +389,7 @@ class PasswordResetView(APIView):
         
         if user:
             if user.is_active:
+
                 token_generator = PasswordResetTokenGenerator()
                 token = token_generator.make_token(user)
                 uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
@@ -417,6 +413,7 @@ class PasswordResetConfirmView(APIView):
     @swagger_auto_schema(method="post", request_body=PasswordResetSerializer())
     @action(methods=["post"], detail=True)
     def post(self, request, uidb64, token):
+
         try:
             user_id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=user_id)
@@ -428,6 +425,7 @@ class PasswordResetConfirmView(APIView):
             serializer.is_valid(raise_exception=True)
             user.set_password(serializer.data.get("password"))
             user.save()
+
             return Response({"message": "password reset successful"}, status=200)
         
         else:

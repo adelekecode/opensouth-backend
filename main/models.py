@@ -124,6 +124,20 @@ class Organisations(models.Model):
             count += file.download_count
         
         return count
+    
+    @property
+    def views_count(self):
+
+        from .models import DatasetViews
+        views = DatasetViews.objects.filter(dataset__organisation=self)
+
+        count = 0
+        for view in views:
+            count += view.count
+
+        return count
+
+
        
 
     

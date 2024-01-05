@@ -118,7 +118,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         
         return 
         
-        
     class Meta:
         """additional permission to the  user model for viewing dashboards"""
         permissions = [

@@ -48,8 +48,10 @@ def dataset_actions(request, pk, action):
     if request.method == 'POST':
         if pk is None:
             return Response({"error": "dataset id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
         if action is None:
             return Response({"error": "action is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
             dataset = Datasets.objects.get(id=pk)
         except Datasets.DoesNotExist:
