@@ -10,7 +10,7 @@ from .views import *
 
 urlpatterns = [
     path('organisations/', OrganisationView.as_view(), name="organisations"),
-    path('organisations/<uuid:pk>/', OrganisationDetailView.as_view(), name="organisations"),
+    path('organisations/<str:slug>/', OrganisationDetailView.as_view(), name="organisations"),
     path('organisations/<uuid:org_pk>/users/', add_user_to_organisation, name="add_user_to_organisation"),
     path('organisations/<uuid:org_pk>/users/<str:user_pk>/', delete_user_from_organisation, name="delete_user_from_organisation"),
     path('datasets/<uuid:cat_pk>/', DatasetView.as_view(), name="datasets"),

@@ -118,7 +118,7 @@ class OrganisationDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False)
-    lookup_field = 'pk'
+    lookup_field = 'slug'
 
 
 
