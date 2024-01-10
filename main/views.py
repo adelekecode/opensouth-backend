@@ -235,7 +235,16 @@ class DatasetView(APIView):
             try:
                 organisation = Organisations.objects.get(pk=organisation)
             except Organisations.DoesNotExist:
+
                 return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            
+            if request.user not in organisation.users.all():
+                return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            if organisation.status != "approved":
+                return Response({"error": "organisation is not verified"}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            
             serializer.validated_data['organisation'] = organisation
 
         serializer.validated_data['user'] = request.user
