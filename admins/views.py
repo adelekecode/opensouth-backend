@@ -80,6 +80,39 @@ def dataset_actions(request, pk, action):
         
 
 
+
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def organisation_actions(request, pk, action):
+
+    if request.method == 'POST':
+      
+        try:
+            organisation = Organisations.objects.get(id=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if action == "reject":
+
+            organisation.status = "rejected"
+            organisation.save()
+            
+            return Response({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "approve":
+
+            organisation.status = "approved"
+            organisation.save()
+            return Response({"message": "organisation approved successfully"}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
        
                 
 

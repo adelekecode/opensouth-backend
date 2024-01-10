@@ -62,7 +62,6 @@ class Categories(models.Model):
 class Organisations(models.Model):
 
     """ users is the group of users that are in the organisation
-        user is the owner of the organisation and the person who has administartive rights to the organisation
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -71,14 +70,26 @@ class Organisations(models.Model):
     description = models.TextField()
     logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="organisation_user")
+    status = models.CharField(max_length=250, default="pending", choices=(("pending", "pending"), ("approved", "approved"), ("rejected", "rejected")))
+    type = models.CharField(max_length=250, default="null", choices=(("cooperate_organisation", "cooperate_organisation"), ("cooperate_society", "cooperate_society")))
+    email = models.EmailField(null=True)
+    linkedin = models.URLField(null=True)
+    twitter = models.URLField(null=True)
+    website = models.URLField(null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+
+        if self.is_deleted:
+
+            self.slug = slugify(self.name) + "-deleted-"
+            self.name = self.name + "-deleted-"
+
+        else:
+            self.slug = slugify(self.name)
 
         super(Organisations, self).save(*args, **kwargs)
 

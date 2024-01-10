@@ -101,10 +101,11 @@ class OrganisationView(APIView):
 
         if Organisations.objects.filter(slug=slug).exists():
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer.save()
         serializer.instance.users.add(request.user)
-        serializer.instance.user = request.user
         serializer.instance.save()
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
@@ -126,7 +127,7 @@ class OrganisationDetailView(generics.RetrieveUpdateDestroyAPIView):
 @swagger_auto_schema(methods=['POST'], request_body=EmailSerializer())
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def add_user_to_organisation(request, org_pk):
 
     if request.method == "POST":
@@ -141,23 +142,21 @@ def add_user_to_organisation(request, org_pk):
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
-        
-        if organisation.user != request.user:
-            return Response({"error": "you are not authorised to add user to this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
-
+      
 
         if organisation.users.filter(pk=user.id).exists():
             return Response({"error": "user already exists in user list"}, status=status.HTTP_400_BAD_REQUEST)
         
         organisation.users.add(user)
         organisation_add_users(organisation=organisation, user=user)
+
         return Response({"message": "user added successfully"}, status=status.HTTP_200_OK)
 
 
 
 @api_view(['DELETE'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def delete_user_from_organisation(request, org_pk, user_pk):
     
     if request.method == "DELETE":
@@ -170,12 +169,13 @@ def delete_user_from_organisation(request, org_pk, user_pk):
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if organisation.user != request.user:
-            return Response({"error": "you are not authorised to delete user from this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
-
+     
         if organisation.users.filter(pk=user.id).exists():
+
             organisation.users.remove(user)
+
             organisation_delete_users(organisation=organisation, user=user)
+
 
             return Response({"message": "user removed successfully"}, status=status.HTTP_200_OK)
         
