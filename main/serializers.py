@@ -91,3 +91,44 @@ class TagsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags
         fields = "__all__"
+
+
+
+
+
+
+
+class PinSerializer(serializers.Serializer):
+
+    pin = serializers.CharField(max_length=6, required=True)
+    
+    
+    def verify_pin(self, request):
+        pin = self.validated_data['pin']
+        
+        if VerificationPin.objects.filter(pin=pin).exists():
+            try:
+                pin = VerificationPin.objects.get(pin=pin)
+            except Exception:
+                VerificationPin.objects.filter(pin=pin).delete()
+
+                raise serializers.ValidationError(detail='Cannot verify otp. Please try later')
+            
+            if not pin.is_active:
+                if pin.organisation.is_verified:
+
+                    pin.organisation.is_verified = True
+                    pin.organisation.save()
+                    pin.is_active = False
+                    pin.save()
+                        
+                    return {'message': 'Verification Complete'}
+            
+                else:
+                    raise serializers.ValidationError(detail='Organisation with this pin has been verified.')
+                
+            else:
+                raise serializers.ValidationError(detail='PIN already used')
+                    
+        else:
+            raise serializers.ValidationError(detail='Invalid PIN')

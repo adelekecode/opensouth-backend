@@ -23,5 +23,7 @@ urlpatterns = [
     path('user/organisations/<uuid:pk>/datasets/', UserOrganisationDatasets.as_view(), name="user_organisation_datasets"),
     path('user/datasets/', UserDataset.as_view(), name="user_datasets"),
     path('user/organisations/', UserOrganisation.as_view(), name="user_organisations"),
+    path('organisations/verify-pin/', pin_verification, name="pin_verification"),
+    path('organisations/resend-pin/', resend_pin, name="resend_pin"),
 
 ]

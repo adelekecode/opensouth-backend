@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from .email import *
+from .helpers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -31,6 +32,8 @@ import requests
 import os
 
 # Create your views here.
+
+
 
 
 
@@ -110,10 +113,14 @@ class OrganisationView(APIView):
         if Organisations.objects.filter(slug=slug).exists():
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer.save()
+        serializer.save(
+            user = request.user
+        )
+
         serializer.instance.users.add(request.user)
         serializer.instance.save()
 
+  
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
@@ -429,9 +436,6 @@ class UserOrganisationDatasets(generics.ListAPIView):
     
 
 
-
-
-
 class DatasetDownloadCount(APIView):
 
 
@@ -446,3 +450,43 @@ class DatasetDownloadCount(APIView):
     
 
 
+          
+@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+@api_view(['POST'])
+def pin_verification(request):
+    
+    """Api view for verifying Organisation PIN """
+
+    if request.method == 'POST':
+
+        serializer = OTPVerifySerializer(data = request.data)
+
+        if serializer.is_valid():
+            data = serializer.verify_pin(request)
+            
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+
+            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+
+
+
+@api_view(['POST'])
+def resend_pin(request, pk):
+    if request.method == 'POST':
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if organisation.is_verified:
+            return Response({"error": "organisation already verified"}, status=400)
+        
+        pin = generate_organisation_pin(organisation=organisation)
+        organisation_verification_email(email=organisation.email, user=organisation.user, organization=organisation, pin=pin)
+
+        return Response({"message": "pin resent successfully"}, status=200)
+        
+        

@@ -81,4 +81,43 @@ please don't hesitate to reach out to our friendly support team at support@opens
             """
         }
     )
+
+
+
+
+def organisation_verification_email(email, user, organization, pin):
+
+    
+    requests.post(
+        url="https://api.useplunk.com/v1/send",
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "to": email,
+            "subject": "Open South - Organization Verification",
+            "body": f"""
+            <html>
+                <body>
+                    <p>Dear {str(user.first_name).capitalize()},</p>
+
+                    <p>A new organization, {str(organization.name).capitalize()}, has been created.</p>
+                    <p>Please use the following verification pin to verify your ownership:</p>
+
+                    <p>Verification Pin: {pin}</p>
+                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
+                    <p>Best regards,</p>
+                    <p>Open South.</p>
+                </body>
+            </html>
+            """
+        }
+    )
+
+
+
+
+
+
     
