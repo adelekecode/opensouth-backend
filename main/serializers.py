@@ -18,7 +18,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
     views_count = serializers.ReadOnlyField()
     users_data = serializers.ReadOnlyField()
     logo_url = serializers.ReadOnlyField()
-
+    email = serializers.EmailField(required=True)
 
     
 

@@ -97,7 +97,15 @@ class OrganisationView(APIView):
         serializer = OrganisationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
+        email = serializer.validated_data['email']
+        type = serializer.validated_data['type']
         slug = slugify(name)
+
+        username, domain = email.split('@')
+
+        if domain == "gmail.com":
+            if type == "cooperate_organisation":
+                return Response({"error": "gmail is not allowed for cooperate organisations"}, status=status.HTTP_400_BAD_REQUEST)
 
         if Organisations.objects.filter(slug=slug).exists():
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
