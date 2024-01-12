@@ -488,8 +488,9 @@ class Pin_Verification(APIView):
                 data = serializer.verify_pin(request)
 
                 return Response(data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
