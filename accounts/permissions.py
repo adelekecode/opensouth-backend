@@ -85,7 +85,7 @@ class IsAdmin(BasePermission):
     def has_permission(self, request, view):
 
         if isinstance(request.user, AnonymousUser):
-            raise AuthenticationFailed(detail="Authentication credentials were not provided oh")
+            raise AuthenticationFailed(detail="Authentication credentials were not provided")
         
         if request.user.role == "admin":
             return True

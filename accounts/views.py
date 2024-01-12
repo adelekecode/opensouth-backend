@@ -15,6 +15,9 @@ from django.contrib.auth import authenticate, logout
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView , RetrieveUpdateAPIView
 from rest_framework.decorators import action
+from main.models import *
+from main.serializers import *
+
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from .models import ActivityLog
@@ -430,3 +433,39 @@ class PasswordResetConfirmView(APIView):
         
         else:
             return Response({"error": "invalid token"}, status=400)
+        
+
+
+
+
+
+
+        
+@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+@api_view(['POST'])
+def pin_verification(request):
+
+    if request.method == 'POST':
+        
+        serializer = PinSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pin = serializer.validated_data['pin']
+
+        if VerificationPin.objects.filter(pin=pin).exists():
+
+            verify_pin = VerificationPin.objects.get(pin=pin)
+
+            if verify_pin.is_active == False:
+                return Response({"error": "pin has been used"}, status=400)
+            
+            if verify_pin.organisation.is_verified:
+                return Response({"error": "organisation already verified"}, status=400)
+            
+            verify_pin.is_active = False
+            verify_pin.save()
+
+            verify_pin.organisation.is_verified = True
+            verify_pin.organisation.save()
+
+            return Response({"message": "organisation verified successfully"}, status=200)
+

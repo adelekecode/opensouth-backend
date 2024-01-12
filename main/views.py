@@ -460,36 +460,6 @@ class DatasetDownloadCount(APIView):
         return Response({"message": "download count updated"}, status=200)
     
 
-        
-@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-@api_view(['POST'])
-def pin_verification(request):
-
-    if request.method == 'POST':
-        
-        serializer = PinSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        pin = serializer.validated_data['pin']
-
-        if VerificationPin.objects.filter(pin=pin).exists():
-
-            verify_pin = VerificationPin.objects.get(pin=pin)
-
-            if verify_pin.is_active == False:
-                return Response({"error": "pin has been used"}, status=400)
-            
-            if verify_pin.organisation.is_verified:
-                return Response({"error": "organisation already verified"}, status=400)
-            
-            verify_pin.is_active = False
-            verify_pin.save()
-
-            verify_pin.organisation.is_verified = True
-            verify_pin.organisation.save()
-
-            return Response({"message": "organisation verified successfully"}, status=200)
-
-
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
