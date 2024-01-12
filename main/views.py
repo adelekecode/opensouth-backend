@@ -478,7 +478,7 @@ class Pin_Verification(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def get(self, request):
 
         serializer = PinSerializer(data=request.data)
         if serializer.is_valid():
