@@ -478,8 +478,7 @@ class Pin_Verification(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-    def get(self, request):
+    def post(self, request):
 
         serializer = PinSerializer(data=request.data)
         if serializer.is_valid():
