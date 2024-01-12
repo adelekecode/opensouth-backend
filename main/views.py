@@ -123,6 +123,19 @@ class OrganisationView(APIView):
   
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+
+    def get(self, request):
+        
+        if request.user.role != "admin":
+            return Response({"error": "you are not authorised to view organisations"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        organisations = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
+        serializer = OrganisationSerializer(organisations, many=True)
+
+       
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
 
 
@@ -244,7 +257,7 @@ class DatasetView(APIView):
             if organisation.status != "approved":
                 return Response({"error": "organisation is not verified"}, status=status.HTTP_401_UNAUTHORIZED)
             
-            
+
             serializer.validated_data['organisation'] = organisation
 
         serializer.validated_data['user'] = request.user
