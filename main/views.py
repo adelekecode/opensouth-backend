@@ -478,16 +478,18 @@ class Pin_Verification(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def post(self, request):
 
-        serializer = PinSerializer(data=request.data)
-        if serializer.is_valid():
+        if request.method == 'POST':
 
-            data = serializer.verify_pin(request)
+            serializer = PinSerializer(data=request.data)
+            if serializer.is_valid():
 
-            return Response(data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                data = serializer.verify_pin(request)
+
+                return Response(data, status=status.HTTP_200_OK)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
