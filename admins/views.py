@@ -28,7 +28,7 @@ User = get_user_model()
 
 class AdminDatatsetView(generics.ListAPIView):
 
-    # permission_classes = [IsAdmin]
+    permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')

@@ -125,7 +125,7 @@ class OrganisationView(APIView):
     
 
     def get(self, request):
-        
+
         if request.user.role != "admin":
             return Response({"error": "you are not authorised to view organisations"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -471,30 +471,30 @@ class DatasetDownloadCount(APIView):
         return Response({"message": "download count updated"}, status=200)
     
 
+        
 
-          
-@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-@api_view(['POST'])
-def pin_verification(request):
-    
-    """Api view for verifying Organisation PIN """
+class Pin_Verification(APIView):
 
-    if request.method == 'POST':
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-        serializer = OTPVerifySerializer(data = request.data)
+    @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request):
 
-        if serializer.is_valid():
-            data = serializer.verify_pin(request)
-            
-            return Response(data, status=status.HTTP_200_OK)
-        else:
+        serializer = PinSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-            return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+        data = serializer.verify_pin(request)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def resend_pin(request, pk):
     if request.method == 'POST':
 
