@@ -467,9 +467,9 @@ class OrganisationVerification(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def put(self, request):
 
-        if request.method == 'POST':
+        if request.method == 'PUT':
 
             serializer = PinSerializer(data=request.data)
             if serializer.is_valid():
