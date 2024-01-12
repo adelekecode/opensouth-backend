@@ -70,6 +70,12 @@ def dataset_actions(request, pk, action):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
+        if action == "further_review":
+                
+            dataset.status = "further_review"
+            dataset.save()
+            return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
+        
         if action == "reject":
 
             dataset.status = "rejected"
@@ -81,12 +87,6 @@ def dataset_actions(request, pk, action):
             dataset.status = "published"
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
-        
-        if action == "further_review":
-                
-            dataset.status = "further_review"
-            dataset.save()
-            return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
         
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
