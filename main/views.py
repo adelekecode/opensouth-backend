@@ -467,6 +467,7 @@ class OrganisationVerification(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+    @action(detail=True, methods=['POST'])
     def post(self, request):
 
         serializer = PinSerializer(data=request.data)
