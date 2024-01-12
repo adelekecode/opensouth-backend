@@ -93,6 +93,7 @@ class OrganisationView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+
     @swagger_auto_schema(methods=['POST'], request_body=OrganisationSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request):
@@ -123,18 +124,6 @@ class OrganisationView(APIView):
   
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-
-    def get(self, request):
-
-        if request.user.role != "admin":
-            return Response({"error": "you are not authorised to view organisations"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        organisations = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
-        serializer = OrganisationSerializer(organisations, many=True)
-
-       
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
     
 

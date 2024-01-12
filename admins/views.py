@@ -34,6 +34,19 @@ class AdminDatatsetView(generics.ListAPIView):
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
+
+
+
+class AdminOrganisationView(generics.ListAPIView):
+    
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = OrganisationSerializer
+    queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
+    pagination_class = LimitOffsetPagination
+
+
+
     
     
 
