@@ -461,15 +461,12 @@ class DatasetDownloadCount(APIView):
     
 
 
-
-
 class OrganisationVerification(APIView):
     
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-    @action(detail=True, methods=['POST'])
     def post(self, request):
 
         serializer = PinSerializer(data=request.data)
@@ -483,7 +480,7 @@ class OrganisationVerification(APIView):
             if verify_pin.is_active == False:
                 return Response({"error": "pin has been used"}, status=400)
             
-            if pin.organisation.is_verified:
+            if verify_pin.organisation.is_verified:
                 return Response({"error": "organisation already verified"}, status=400)
             
             verify_pin.is_active = False
@@ -493,8 +490,6 @@ class OrganisationVerification(APIView):
             verify_pin.organisation.save()
 
             return Response({"message": "organisation verified successfully"}, status=200)
-
-
 
 
 @api_view(['POST'])
