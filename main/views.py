@@ -462,7 +462,7 @@ class DatasetDownloadCount(APIView):
 
         
 
-class Pin_Verification(APIView):
+class OrganisationVerification(APIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
