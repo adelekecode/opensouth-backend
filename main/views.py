@@ -460,16 +460,13 @@ class DatasetDownloadCount(APIView):
         return Response({"message": "download count updated"}, status=200)
     
 
+        
+@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+@api_view(['POST'])
+def pin_verification(request):
 
-class OrganisationVerification(APIView):
-    
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-    @action(detail=True, methods=['POST'])
-    def post(self, request):
-
+    if request.method == 'POST':
+        
         serializer = PinSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         pin = serializer.validated_data['pin']
