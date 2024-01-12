@@ -479,15 +479,16 @@ class Pin_Verification(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
-    @action(detail=True, methods=['POST'])
-    def post(self, request):
+    def get(self, request):
 
         serializer = PinSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
 
-        data = serializer.verify_pin(request)
+            data = serializer.verify_pin(request)
 
-        return Response(data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

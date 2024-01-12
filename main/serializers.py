@@ -112,7 +112,7 @@ class PinSerializer(serializers.Serializer):
             except Exception:
                 VerificationPin.objects.filter(pin=pin).delete()
 
-                raise serializers.ValidationError(detail='Cannot verify otp. Please try later')
+                raise serializers.ValidationError(detail='Cannot verify PIN. Please try later')
             
             if not pin.is_active:
                 if pin.organisation.is_verified:
