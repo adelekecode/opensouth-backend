@@ -76,13 +76,13 @@ def dataset_actions(request, pk, action):
             dataset.save()
             return Response({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "approve":
+        if action == "approve":
 
             dataset.status = "published"
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "review":
+        if action == "further_review":
                 
             dataset.status = "further_review"
             dataset.save()
