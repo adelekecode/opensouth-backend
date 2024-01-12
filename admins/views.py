@@ -56,46 +56,40 @@ class AdminOrganisationView(generics.ListAPIView):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])
-def dataset_actions(request, pk, action):
+def dataset_actions(request, pk):
 
     if request.method == 'POST':
-        if pk is None:
-            return Response({"error": "dataset id is required"}, status=status.HTTP_400_BAD_REQUEST)
+      
+        status = request.GET.get('status', None)
         
-        if action is None:
-            return Response({"error": "action is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if status is None:
+            return Response({"error": "status is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             dataset = Datasets.objects.get(id=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if action == "further_review":
+        if status == "further_review":
                 
             dataset.status = "further_review"
             dataset.save()
             return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
         
-        if action == "reject":
+        if status == "reject":
 
             dataset.status = "rejected"
             dataset.save()
             return Response({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
         
-        if action == "approve":
+        if status == "approve":
 
             dataset.status = "published"
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
-        else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
-
-
-
-
-
+       
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])
