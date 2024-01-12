@@ -38,7 +38,7 @@ class AdminDatatsetView(generics.ListAPIView):
 
 
 class AdminOrganisationView(generics.ListAPIView):
-    
+
     permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     serializer_class = OrganisationSerializer
@@ -82,7 +82,7 @@ def dataset_actions(request, pk, action):
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "further_review":
+        elif action == "review":
                 
             dataset.status = "further_review"
             dataset.save()
