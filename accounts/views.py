@@ -468,4 +468,6 @@ def pin_verification(request):
             verify_pin.organisation.save()
 
             return Response({"message": "organisation verified successfully"}, status=200)
+        
+        return Response({"error": "invalid pin"}, status=400)
 
