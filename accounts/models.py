@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('user', 'User'),
+        ('moderator', 'Moderator')
     )   
     
     
@@ -155,6 +156,7 @@ class ActivationOtp(models.Model):
 
 
 class ActivityLog(models.Model):
+    
     """
     Database schema for user activity logs.
 

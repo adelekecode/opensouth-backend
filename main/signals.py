@@ -27,3 +27,42 @@ def organisation_created_mail(sender, instance, created, **kwargs):
 
         return
 
+
+@receiver(post_save, sender=Datasets)
+def dataset_created(sender, instance, created, **kwargs):
+
+    if created:
+
+        if instance.organisation:
+
+            message = f"""
+A new dataset with the DUI id: {str(instance.dui)} has been created under the {str(instance.organisation.name).capitalize()} organisation. 
+Please visit the following link to view the dataset: https://opensouth.io/dataset/{instance.pk}.
+
+"""
+            users = instance.organisation.users.all()
+
+            for user in users:
+                email = user.email
+
+                dataset_created_mail(email=email, user=user, message=message)
+
+            return
+
+
+        else:
+                
+            user = instance.user
+            email = instance.user.email
+            message = f"""
+A new dataset with the DUI id: {instance.dui} has been created under your account.
+Please visit the following link to view the dataset: https://opensouth.io/dataset/{instance.pk}.
+
+"""
+            dataset_created_mail(email=email, user=user, message=message)
+
+
+
+            return
+        
+      

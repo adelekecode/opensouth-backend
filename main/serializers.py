@@ -101,3 +101,14 @@ class TagsSerializer(serializers.ModelSerializer):
 class PinSerializer(serializers.Serializer):
 
     pin = serializers.CharField(max_length=6, required=True)
+
+
+
+class DatasetCommentSerializer(serializers.ModelSerializer):
+
+    dataset_data = serializers.ReadOnlyField()
+    user_data = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = DatasetComments
+        fields = "__all__"

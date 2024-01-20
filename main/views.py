@@ -409,6 +409,21 @@ class UserDataset(generics.ListAPIView):
     
 
 
+class UserDatasetDetailView(generics.RetrieveUpdateAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+
+    lookup_field = 'pk'
+
+
+    def get_queryset(self):
+        return Datasets.objects.filter(user=self.request.user, is_deleted=False).order_by('-created_at')
+    
+
+
 class UserOrganisation(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]

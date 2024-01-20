@@ -120,4 +120,37 @@ def organisation_verification_email(email, user, organization, pin):
 
 
 
+def dataset_created_mail(email, user, message):
+
+    
+    requests.post(
+        url="https://api.useplunk.com/v1/send",
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "to": email,
+            "subject": "Open South - Dataset Created",
+            "body": f"""
+            <html>
+                <body>
+                    <p>Dear {str(user.first_name).capitalize()},</p>
+
+                    <p> {message}</p>
+
+                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
+                    <p>Best regards,</p>
+                    <p>Open South.</p>
+                </body>
+            </html>
+            """
+        }
+    )
+
+
+
+
+
+
     
