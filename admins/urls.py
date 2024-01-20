@@ -14,5 +14,9 @@ urlpatterns = [
     path('admin/organisations/pk/<uuid:pk>/actions/<str:action>/', organisation_actions, name="admin_organisations_actions"),
     path('admin/organisations/', AdminOrganisationView.as_view(), name="admin_organisations"),
     path('admin/organisations/indicators/', organisation_indicators, name="admin_organisations_indicators"),
+    path('admin/news/', NewsView.as_view(), name="admin_news"),
+    path('admin/news/<uuid:pk>/', NewsDetailView.as_view(), name="admin_news"),
+    path('admin/news/<uuid:pk>/actions/<str:action>/', news_actions, name="admin_news_actions"),
+    path('news/views/<uuid:pk>/', news_views, name="news_views"),
     
 ]

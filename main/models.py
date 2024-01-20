@@ -410,3 +410,50 @@ class DatasetComments(models.Model):
     @property
     def dataset_data(self):
         return model_to_dict(self.dataset, fields=["id", "title", "image_url", "organisation_data", "status"])
+    
+
+
+
+
+
+
+
+class News(models.Model):
+
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
+    body = models.TextField()
+    image = models.ImageField(upload_to="news_images/", null=True)
+    views = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def save(self, *args, **kwargs):
+            
+            self.slug = slugify(self.title)
+    
+            super(News, self).save(*args, **kwargs)
+
+
+    def __str__(self):
+        return f"{self.title} -- {self.is_published}"
+
+
+
+    def delete(self):
+        self.is_deleted = True
+        self.save()
+
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return None
+
+
+

@@ -142,7 +142,89 @@ def organisation_indicators(request):
     }
         
         return Response(data, status=status.HTTP_200_OK)
+    
+
+
+
+
+class NewsView(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = NewsSerializer
+
+    @swagger_auto_schema(request_body=NewsSerializer)
+    @action(detail=True, methods=['POST'])
+    def post(self, request):
+        serializer = NewsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "news created successfully"}, status=status.HTTP_201_CREATED)
         
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+
+        news = News.objects.filter(is_deleted=False).order_by('-created_at')
+        serializer = NewsSerializer(news, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class NewsDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = NewsSerializer
+    queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
+    lookup_field = 'pk'
+    
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+def news_views(request, pk):
+
+    if request.method == 'POST':
+        
+        try:
+            news = News.objects.get(id=pk)
+        except News.DoesNotExist:
+            return Response({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        news.views += 1
+        news.save()
+
+        return Response({"message": "news views updated successfully"}, status=status.HTTP_200_OK)
+    
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def news_actions(request, pk, action):
+
+    if request.method == 'POST':
+      
+        try:
+            news = News.objects.get(id=pk)
+        except News.DoesNotExist:
+            return Response({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if action == "publish":
+
+            news.is_published = True
+            news.save()
+            
+            return Response({"message": "news objectt updated successfully"}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+    
+
 
 
        

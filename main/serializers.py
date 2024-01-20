@@ -112,3 +112,14 @@ class DatasetCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetComments
         fields = "__all__"
+
+
+
+
+class NewsSerializer(serializers.ModelSerializer):
+
+    image_url = serializers.ReadOnlyField()
+
+    class Meta:
+        model = News
+        fields = "__all__"
