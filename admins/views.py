@@ -125,6 +125,26 @@ def organisation_actions(request, pk, action):
         
 
 
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def organisation_indicators(request):
+
+    if request.method == 'GET':
+      
+        data = {
+          
+        "count": Organisations.objects.filter(is_deleted=False).count(),
+        "approved": Organisations.objects.filter(is_deleted=False, status="approved").count(),
+        "rejected": Organisations.objects.filter(is_deleted=False, status="rejected").count(),
+        "pending": Organisations.objects.filter(is_deleted=False, status="pending").count()
+          
+    }
+        
+        return Response(data, status=status.HTTP_200_OK)
+        
+
+
        
                 
 
