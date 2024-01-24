@@ -166,7 +166,7 @@ class NewsView(APIView):
 
 class AdminListNewsView(generics.ListAPIView):
 
-    per,mission_classes = [IsAdmin]
+    permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
