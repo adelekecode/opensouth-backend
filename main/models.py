@@ -251,8 +251,11 @@ class Datasets(models.Model):
         if files:
             list_data = []
             for file in files:
-                data = model_to_dict(file, fields=["id", "file_url", "format", "size", "sha256"])
+                data = model_to_dict(file, fields=["id", "file_url", "format", "size", "sha256", "created_at", "updated_at"])
+                data["id"] = file.id
                 data["file_url"] = file.file_url
+                data["created_at"] = file.created_at
+                data["updated_at"] = file.updated_at
                 list_data.append(data)
             return list_data
         
