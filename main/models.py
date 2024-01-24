@@ -253,7 +253,7 @@ class Datasets(models.Model):
             for file in files:
                 data = model_to_dict(file, fields=["id", "file_name", "file_url", "format", "size", "sha256", "created_at", "updated_at"])
                 data["id"] = file.id
-                data["file_name"] = file.file_url.split("/")[-1]
+                data["file_name"] = file.file_url.split("/")[-1].split(".")[0]
                 data["file_url"] = file.file_url
                 data["created_at"] = file.created_at
                 data["updated_at"] = file.updated_at
