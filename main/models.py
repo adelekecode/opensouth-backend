@@ -253,7 +253,7 @@ class Datasets(models.Model):
             for file in files:
                 data = model_to_dict(file, fields=["id", "file_name", "file_url", "format", "size", "sha256", "created_at", "updated_at"])
                 data["id"] = file.id
-                data["file_name"] = file.file_url.split("/")[-1].split(".")[0]
+                data["file_name"] = file.file_name if file.file_name else file.file_url.split("/")[-1].split(".")[0]
                 data["file_url"] = file.file_url
                 data["created_at"] = file.created_at
                 data["updated_at"] = file.updated_at
@@ -297,6 +297,7 @@ class DatasetFiles(models.Model):
     dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, related_name="dataset_files", null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_dataset_files", null=True)
     file = models.FileField(upload_to="dataset_files/")
+    file_name = models.CharField(max_length=100, null=True)
     format = models.CharField(max_length=100)
     sha256 = models.CharField(max_length=100, null=True)
     size = models.CharField(max_length=100)

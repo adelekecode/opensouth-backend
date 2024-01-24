@@ -297,11 +297,17 @@ class CreateDatasetFiles(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+        
+        serialized_data = DatasetFileSerializer(d_set).data
+        file_name = serialized_data['file_name']
+        
+        d_set.file_name = file_name.split("/")[-1].split(".")[0]
+        d_set.save()
        
 
         data = {
             "message": "file uploaded successfully",
-            "data": DatasetFileSerializer(d_set).data
+            "data": serialized_data
         }
         return Response(data, status=200)
 
