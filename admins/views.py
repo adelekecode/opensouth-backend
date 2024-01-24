@@ -163,13 +163,15 @@ class NewsView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def get(self, request):
 
-        news = News.objects.filter(is_deleted=False).order_by('-created_at')
-        serializer = NewsSerializer(news, many=True)
+class AdminListNewsView(generics.ListAPIView):
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+    per,mission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    pagination_class  = LimitOffsetPagination
+    serializer_class = NewsSerializer
+    queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
+   
 
 class NewsDetailView(generics.RetrieveUpdateDestroyAPIView):
 
