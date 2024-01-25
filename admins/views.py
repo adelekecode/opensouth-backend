@@ -9,6 +9,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound, ValidationError
 from accounts.models import *
@@ -170,7 +172,33 @@ class AdminListNewsView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
+
+
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.filter_queryset(self.get_queryset())
+        state = request.query_params.get('state', None)
+
+        if state == "published":
+            queryset = queryset.filter(is_published=True)
+
+        if state == "unpublished":
+            queryset = queryset.filter(is_published=False)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NewsSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = NewsSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+   
    
 
 class NewsDetailView(generics.RetrieveUpdateDestroyAPIView):
