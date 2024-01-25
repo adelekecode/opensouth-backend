@@ -28,6 +28,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Permission, Group
 from django.db.models import Q
 from rest_framework.pagination import LimitOffsetPagination
+from accounts.serializers import CustomUserSerializer
 import requests
 import os
 
@@ -168,6 +169,45 @@ def add_user_to_organisation(request, org_pk):
         organisation_add_users(organisation=organisation, user=user)
 
         return Response({"message": "user added successfully"}, status=status.HTTP_200_OK)
+
+class OrganisationUsers(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomUserSerializer
+    queryset = User.objects.filter(is_deleted=False)
+
+
+    def get_queryset(self):
+
+        pk = self.kwargs['pk']
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        users = organisation.users.all()
+
+        return users
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = CustomUserSerializer(page, many=True)
+
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CustomUserSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+       
+
+        
+    
 
 
 

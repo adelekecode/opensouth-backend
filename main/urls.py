@@ -12,6 +12,7 @@ urlpatterns = [
     path('organisations/', OrganisationView.as_view(), name="organisations"),
     path('organisations/<str:slug>/', OrganisationDetailView.as_view(), name="organisations"),
     path('organisations/<uuid:org_pk>/users/', add_user_to_organisation, name="add_user_to_organisation"),
+    path('organisations/users/<uuid:pk>/', OrganisationUsers.as_view(), name="organisation_users"),
     path('organisations/<uuid:org_pk>/users/<str:user_pk>/', delete_user_from_organisation, name="delete_user_from_organisation"),
     path('datasets/<uuid:cat_pk>/', DatasetView.as_view(), name="datasets"),
     path('datasets/files/<uuid:pk>/', CreateDatasetFiles.as_view(), name="datasets_files"),

@@ -321,7 +321,6 @@ class AdminOrganisation_Requests(generics.ListAPIView):
     
     def list(self, request, *args, **kwargs):
         pk = request.GET.get('pk', None)
-        
 
         if pk:
 
