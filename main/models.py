@@ -462,3 +462,24 @@ class News(models.Model):
 
 
 
+
+
+class OrganisationRequests(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organisation = models.ForeignKey(Organisations, on_delete=models.CASCADE, related_name="organisation_requests")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_organisation_requests")
+    is_accepted = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"{self.organisation.name} -- {self.user.email}"
+    
+    def delete(self):
+        self.is_deleted = True
+        self.save()
+    
+

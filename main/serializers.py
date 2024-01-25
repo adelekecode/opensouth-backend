@@ -123,3 +123,14 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = "__all__"
+
+
+
+class OrganisationRequestSerializer(serializers.ModelSerializer):
+
+    # organisation_data = serializers.ReadOnlyField()
+    # user_data = serializers.ReadOnlyField()
+
+    class Meta:
+        model = OrganisationRequests
+        fields = "__all__"

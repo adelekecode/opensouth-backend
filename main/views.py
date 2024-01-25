@@ -499,5 +499,32 @@ def resend_pin(request, pk):
         organisation_verification_email(email=organisation.email, user=organisation.user, organization=organisation, pin=pin)
 
         return Response({"message": "pin resent successfully"}, status=200)
+    
+
+
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def request_to_join_organisation(request, pk):
+
+    if request.method == 'POST':
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        OrganisationRequests.objects.create(
+            user=request.user,
+            organisation=organisation
+        )
+        
+        if request.user in organisation.users.all():
+            return Response({"error": "you are already a member of this organisation"}, status=400)
+        
+
+        return Response({"message": "request sent successfully"}, status=200)
         
         

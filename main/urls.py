@@ -25,5 +25,6 @@ urlpatterns = [
     path('user/datasets/<uuid:pk>/', UserDatasetDetailView.as_view(), name="user_datasets"),
     path('user/organisations/', UserOrganisation.as_view(), name="user_organisations"),
     path('organisations/resend-pin/<uuid:pk>/', resend_pin, name="resend_pin"),
+    path('user/request-to-join-organisation/<uuid:pk>/', request_to_join_organisation, name="request_to_join_organisation"),
 
 ]

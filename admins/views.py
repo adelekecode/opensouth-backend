@@ -226,10 +226,20 @@ def news_actions(request, pk, action):
 
 
     
+class AdminOrganisation_Requests(generics.ListAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = OrganisationRequestSerializer
+    queryset = OrganisationRequests.objects.filter(is_deleted=False).order_by('-created_at')
+    pagination_class = LimitOffsetPagination
+    lookup_url_kwarg = "pk"
+
+    def get_queryset(self):
+        org_pk = self.kwargs.get(self.lookup_url_kwarg)
+        if org_pk is not None:
+            return OrganisationRequests.objects.filter(organisation=org_pk, is_deleted=False).order_by('-created_at')
+        return OrganisationRequests.objects.filter(is_deleted=False).order_by('-created_at')
 
 
-
-       
-                
-
-            
+    
