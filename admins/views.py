@@ -33,8 +33,40 @@ class AdminDatatsetView(generics.ListAPIView):
     permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     serializer_class = DatasetSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
+
+
+
+    def list(self, request, *args, **kwargs):
+            
+        queryset = self.filter_queryset(self.get_queryset())
+        state = request.GET.get('status', None)
+
+        if state == "published":
+            queryset = queryset.filter(status="published")
+
+        if state == "unpublished":
+            queryset = queryset.filter(status="unpublished")
+
+        if state == "rejected":
+            queryset = queryset.filter(status="rejected")
+
+        if state == "pending":
+            queryset = queryset.filter(status="pending")
+
+        if state == "further_review":
+            queryset = queryset.filter(status="further_review")
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = DatasetSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = DatasetSerializer(queryset, many=True)
+
+        return Response(serializer.data)
 
 
 
@@ -44,6 +76,7 @@ class AdminOrganisationView(generics.ListAPIView):
     permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     serializer_class = OrganisationSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
@@ -123,11 +156,23 @@ def dataset_actions(request, pk, action):
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
+        elif action == "unpublish":
+
+            dataset.status = "unpublished"
+            dataset.save()
+            return Response({"message": "dataset unpublished successfully"}, status=status.HTTP_200_OK)
+        
         elif action == "further_review":
                 
             dataset.status = "further_review"
             dataset.save()
             return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "delete":
+                        
+            dataset.is_deleted = True
+            dataset.save()
+            return Response({"message": "dataset deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)

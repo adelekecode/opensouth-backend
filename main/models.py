@@ -164,6 +164,7 @@ class Datasets(models.Model):
         ("pending", "pending"),
         ("further_review", "further_review"),
         ("published", "published"),
+        ("unpublished", "unpublished"),
         ("rejected", "rejected"),
     )
 
