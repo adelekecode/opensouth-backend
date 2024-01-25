@@ -48,6 +48,45 @@ class AdminOrganisationView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.filter_queryset(self.get_queryset())
+        state = request.GET.get('status', None)
+
+        if state == "approved":
+            queryset = queryset.filter(status="approved")
+
+        if state == "rejected":
+            queryset = queryset.filter(status="rejected")
+
+        if state == "pending":
+            queryset = queryset.filter(status="pending")
+
+        if state == "blocked":
+            queryset = queryset.filter(is_active=False)
+
+        if state == "unblocked":
+            queryset = queryset.filter(is_active=True)
+
+        if state == "verified":
+            queryset = queryset.filter(is_verified=True)
+
+        if state == "unverified":
+            queryset = queryset.filter(is_verified=False)
+
+        if state == "undeleted":
+            queryset = queryset.filter(is_deleted=False)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = OrganisationSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = OrganisationSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
 
     
     
