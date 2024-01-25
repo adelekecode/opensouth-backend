@@ -85,6 +85,7 @@ class AdminOrganisationView(generics.ListAPIView):
 
         queryset = self.filter_queryset(self.get_queryset())
         state = request.GET.get('status', None)
+        verified = request.GET.get('verified', None)
 
         if state == "approved":
             queryset = queryset.filter(status="approved")
@@ -101,10 +102,10 @@ class AdminOrganisationView(generics.ListAPIView):
         if state == "unblocked":
             queryset = queryset.filter(is_active=True)
 
-        if state == "verified":
+        if verified == "true":
             queryset = queryset.filter(is_verified=True)
 
-        if state == "unverified":
+        if verified == "false":
             queryset = queryset.filter(is_verified=False)
 
         if state == "undeleted":
