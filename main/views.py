@@ -175,6 +175,7 @@ class OrganisationUsers(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CustomUserSerializer
+    pagination_class = LimitOffsetPagination
     queryset = User.objects.filter(is_deleted=False)
 
 
