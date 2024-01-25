@@ -122,6 +122,24 @@ def organisation_actions(request, pk, action):
             organisation.save()
             return Response({"message": "organisation approved successfully"}, status=status.HTTP_200_OK)
         
+        elif action == "block":
+
+            organisation.is_active = False
+            organisation.save()
+            return Response({"message": "organisation blocked successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "unblock":
+                
+            organisation.is_active = True
+            organisation.save()
+            return Response({"message": "organisation unblocked successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "delete":
+                    
+            organisation.is_deleted = True
+            organisation.save()
+            return Response({"message": "organisation deleted successfully"}, status=status.HTTP_200_OK)
+
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -261,13 +279,20 @@ class AdminOrganisation_Requests(generics.ListAPIView):
     serializer_class = OrganisationRequestSerializer
     queryset = OrganisationRequests.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
-    lookup_url_kwarg = "pk"
+    
+    def list(self, request, *args, **kwargs):
+        pk = request.GET.get('pk', None)
 
-    def get_queryset(self):
-        org_pk = self.kwargs.get(self.lookup_url_kwarg)
-        if org_pk is not None:
-            return OrganisationRequests.objects.filter(organisation=org_pk, is_deleted=False).order_by('-created_at')
-        return OrganisationRequests.objects.filter(is_deleted=False).order_by('-created_at')
+        if pk:
+            queryset = self.filter_queryset(self.get_queryset()).filter(organisation=pk)
+            serializer = OrganisationRequestSerializer(queryset, many=True)
+
+            return Response(serializer.data)
+        
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = OrganisationRequestSerializer(queryset, many=True)
+
+        return Response(serializer.data)
 
 
     
