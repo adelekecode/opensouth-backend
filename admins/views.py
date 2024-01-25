@@ -321,9 +321,17 @@ class AdminOrganisation_Requests(generics.ListAPIView):
     
     def list(self, request, *args, **kwargs):
         pk = request.GET.get('pk', None)
+        
 
         if pk:
-            queryset = self.filter_queryset(self.get_queryset()).filter(organisation=pk)
+
+            try:
+                organisation = Organisations.objects.get(id=pk)
+            except Organisations.DoesNotExist:
+                return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    
+            queryset = self.filter_queryset(self.get_queryset()).filter(organisation=organisation)
+
             serializer = OrganisationRequestSerializer(queryset, many=True)
 
             return Response(serializer.data)
