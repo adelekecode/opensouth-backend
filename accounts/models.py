@@ -105,8 +105,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             data = []
             for org in orgs:
                 list = model_to_dict(org, fields=["id", "name", "slug"])
+                list["id"] = org.id
                 data.append(list)
-                
+
             return data
         
         return None
