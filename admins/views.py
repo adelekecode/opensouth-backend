@@ -17,7 +17,7 @@ from accounts.models import *
 from accounts.serializers import *
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
-
+from main.email import *
 
 
 # Create your views here.
@@ -405,6 +405,8 @@ def organisation_request_actions(request, pk, action):
 
             organisation_request.status = "rejected"
             organisation_request.save()
+
+            organisation_reject_users(organisation=organisation_request.organisation, user=organisation_request.user)
             
             return Response({"message": "organisation request rejected successfully"}, status=status.HTTP_200_OK)
         
@@ -412,6 +414,14 @@ def organisation_request_actions(request, pk, action):
 
             organisation_request.status = "approved"
             organisation_request.save()
+
+            organisation_request.organisation.users.add(organisation_request.user)
+
+            organisation_request.organisation.save()
+
+            organisation_add_users(organisation=organisation_request.organisation, user=organisation_request.user)
+
+
             return Response({"message": "organisation request approved successfully"}, status=status.HTTP_200_OK)
         
         else:
