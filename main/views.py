@@ -557,6 +557,9 @@ def request_to_join_organisation(request, pk):
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=404)
         
+        if organisation.status != "approved":
+            return Response({"error": "request not sent"}, status=401)
+        
         OrganisationRequests.objects.create(
             user=request.user,
             organisation=organisation
