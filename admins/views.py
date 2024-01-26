@@ -145,19 +145,19 @@ def dataset_actions(request, pk, action):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if action == "reject":
+        if action == "rejected":
 
             dataset.status = "rejected"
             dataset.save()
             return Response({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "approve":
+        elif action == "published":
 
             dataset.status = "published"
             dataset.save()
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "unpublish":
+        elif action == "unpublished":
 
             dataset.status = "unpublished"
             dataset.save()
