@@ -104,7 +104,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if orgs:
             data = []
             for org in orgs:
-                data.append(model_to_dict(org), fields=["id", "name", "slug"])
+                list = model_to_dict(org, fields=["id", "name", "slug"])
+                data.append(list)
+                
             return data
         
         return None
