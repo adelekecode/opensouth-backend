@@ -96,6 +96,25 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.image.url
         return None
     
+    @property
+    def organisations(self):
+        from main.models import Organisations
+
+        orgs = Organisations.objects.filter(users=self)
+        if orgs:
+            data = []
+            for org in orgs:
+                data.append(model_to_dict(org), fields=["id", "name", "slug"])
+            return data
+        
+        return None
+    
+               
+            
+
+           
+
+    
     def delete(self):
         
         """
