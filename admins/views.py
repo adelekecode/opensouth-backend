@@ -371,7 +371,7 @@ class AdminOrganisation_Requests(generics.ListAPIView):
     permission_classes = [IsAdmin]
     authentication_classes = [JWTAuthentication]
     serializer_class = OrganisationRequestSerializer
-    queryset = OrganisationRequests.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = OrganisationRequests.objects.filter(is_deleted=False, status='pending').order_by('-created_at')
     pagination_class = LimitOffsetPagination
     
     def list(self, request, *args, **kwargs):
