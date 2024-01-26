@@ -75,7 +75,7 @@ class PublicDatasetView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
     serializer_class = DatasetSerializer
-    queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
@@ -131,7 +131,7 @@ class PublicDatasetDetailView(generics.RetrieveAPIView):
     
     permission_classes = [PublicPermissions]
     serializer_class = DatasetSerializer
-    queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
 
@@ -147,8 +147,8 @@ class PublicCounts(APIView):
     def get(self, request):
 
         data = {
-            "datasets": Datasets.objects.filter(is_deleted=False).count(),
-            "organisations": Organisations.objects.filter(is_deleted=False).count(),
+            "datasets": Datasets.objects.filter(is_deleted=False, status='published').count(),
+            "organisations": Organisations.objects.filter(is_deleted=False, status='approved').count(),
             "users": User.objects.filter(is_deleted=False).count(),
             "categories": Categories.objects.filter(is_deleted=False).count(),
             "files": DatasetFiles.objects.filter(is_deleted=False).count(),
