@@ -470,6 +470,7 @@ class OrganisationRequests(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organisation = models.ForeignKey(Organisations, on_delete=models.CASCADE, related_name="organisation_requests")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_organisation_requests")
+    status = models.CharField(max_length=250, default="pending", choices=(("pending", "pending"), ("approved", "approved"), ("rejected", "rejected")))
     is_accepted = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)

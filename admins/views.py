@@ -387,4 +387,32 @@ class AdminOrganisation_Requests(generics.ListAPIView):
         return Response(serializer.data)
 
 
-    
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def organisation_request_actions(request, pk, action):
+
+    if request.method == 'POST':
+      
+        try:
+            organisation_request = OrganisationRequests.objects.get(id=pk)
+        except OrganisationRequests.DoesNotExist:
+            return Response({"error": "organisation request does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if action == "reject":
+
+            organisation_request.status = "rejected"
+            organisation_request.save()
+            
+            return Response({"message": "organisation request rejected successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "approve":
+
+            organisation_request.status = "approved"
+            organisation_request.save()
+            return Response({"message": "organisation request approved successfully"}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
