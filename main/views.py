@@ -131,7 +131,7 @@ class OrganisationView(APIView):
 
 
 
-class OrganisationDetailView(generics.RetrieveAPIView):
+class OrganisationDetailView(generics.RetrieveUpdateAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
