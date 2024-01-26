@@ -58,7 +58,7 @@ class PublicOrganisationView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
-    queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
 
@@ -66,7 +66,7 @@ class PublicOrganisationDetailView(generics.RetrieveAPIView):
 
     permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
-    queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
 
