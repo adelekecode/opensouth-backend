@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin/datasets/pk/<uuid:pk>/actions/<str:action>/', dataset_actions, name="admin_datatsets_actions"),
     path('admin/organisations/pk/<uuid:pk>/actions/<str:action>/', organisation_actions, name="admin_organisations_actions"),
     path('admin/organisations/', AdminOrganisationView.as_view(), name="admin_organisations"),
+    path('admin/organisations/<uuid:pk>/', AdminOrganisationDetailView.as_view(), name="admin_organisations_detail"),
     path('admin/organisations/indicators/', organisation_indicators, name="admin_organisations_indicators"),
     path('admin/news/', NewsView.as_view(), name="admin_news"),
     path('admin/news/list/', AdminListNewsView.as_view(), name="admin_news_list"),

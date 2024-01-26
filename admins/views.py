@@ -267,6 +267,15 @@ class NewsView(APIView):
             return Response({"message": "news created successfully"}, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminOrganisationDetailView(generics.RetrieveUpdateAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = OrganisationSerializer
+    queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
+    lookup_field = 'pk'
     
 
 class AdminListNewsView(generics.ListAPIView):
