@@ -15,6 +15,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound, ValidationError
 from accounts.models import *
 from accounts.serializers import *
+from accounts.serializers import *
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
 from .email import *
@@ -214,7 +215,7 @@ Please contact the administrator for more information.
 
 """
             dataset_actions_mail(user=dataset.user, action="deleted", message=message)
-            
+
             return Response({"message": "dataset deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
@@ -512,6 +513,92 @@ def organisation_request_actions(request, pk, action):
 
 
             return Response({"message": "organisation request approved successfully"}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class AdminCategories(generics.ListAPIView):
+    
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = CategorySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    queryset = Categories.objects.filter(is_deleted=False).order_by('-created_at')
+    pagination_class = LimitOffsetPagination
+
+
+
+
+
+
+
+class AdminUsers(generics.ListAPIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = CustomUserSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    pagination_class = LimitOffsetPagination
+    queryset = User.objects.filter(is_deleted=False).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.filter_queryset(self.get_queryset())
+        state = request.GET.get('status', None)
+
+        if state == "active":
+            queryset = queryset.filter(is_active=True)
+
+        if state == "inactive":
+            queryset = queryset.filter(is_active=False)
+
+    
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = CustomUserSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CustomUserSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+    
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def user_actions(request, pk):
+
+    if request.method == "POST":
+
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        action = request.data.get('action', None)
+
+        if action == "block":
+
+            user.is_active = False
+            user.save()
+
+            return Response({"message": "user blocked successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "unblock":
+
+            user.is_active = True
+            user.save()
+
+            return Response({"message": "user unblocked successfully"}, status=status.HTTP_200_OK)
+        
+        elif action == "delete":
+
+            user.is_deleted = True
+            user.save()
+
+            return Response({"message": "user deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)

@@ -20,6 +20,9 @@ urlpatterns = [
     path('admin/news/<uuid:pk>/', NewsDetailView.as_view(), name="admin_news"),
     path('admin/news/<uuid:pk>/actions/<str:action>/', news_actions, name="admin_news_actions"),
     path('news/views/<uuid:pk>/', news_views, name="news_views"),
+    path('admin/categories/', AdminCategories.as_view(), name="admin_categories"),
+    path('admin/users/', AdminUsers.as_view(), name="admin_users"),
+    path('admin/users/pk/<uuid:pk>/actions/<str:action>/', user_actions, name="admin_users_actions"),
     path('admin/organisation_requests/', AdminOrganisation_Requests.as_view(), name="admin_organisation_requests"),
     path('admin/organisation_requests/pk/<uuid:pk>/actions/<str:action>/', organisation_request_actions, name="admin_organisation_requests_actions"),
     

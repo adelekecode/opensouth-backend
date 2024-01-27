@@ -51,8 +51,8 @@ class CategoryView(APIView):
     @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request):
-        # if request.user.role != "admin":
-        #     return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.role != "admin":
+            return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -66,17 +66,6 @@ class CategoryView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
-    def get(self, request):
-
-        categories = Categories.objects.filter(is_deleted=False).order_by('-created_at')
-        serializer = CategorySerializer(categories, many=True)
-
-        data = {
-            "count": categories.count(),
-            "data": serializer.data
-        }
-
-        return Response(data, status=status.HTTP_200_OK)
     
 
 
@@ -298,7 +287,7 @@ class DatasetView(APIView):
             "coordinates": coordinates
         }
         serializer.save()
-        
+
 
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
