@@ -541,7 +541,7 @@ class AdminUsers(generics.ListAPIView):
     serializer_class = CustomUserSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     pagination_class = LimitOffsetPagination
-    queryset = User.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = User.objects.filter(is_deleted=False).order_by('-date_joined')
 
     def list(self, request, *args, **kwargs):
 
