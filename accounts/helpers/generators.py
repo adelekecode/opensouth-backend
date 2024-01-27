@@ -1,7 +1,7 @@
 import string
 import random
 
-def generate_password():
+async def generate_password():
     a = []
     for _ in range(3):
         a.append(random.choice(string.ascii_lowercase))
@@ -9,6 +9,7 @@ def generate_password():
         a.append(random.choice(string.digits))
         a.append(random.choice(["@","!","$","#","="]))
     random.shuffle(a)
+
     return "".join(a)
 
 

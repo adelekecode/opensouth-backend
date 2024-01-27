@@ -17,6 +17,7 @@ from accounts.models import *
 from accounts.serializers import *
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
+from .email import *
 from main.email import *
 
 
@@ -148,31 +149,72 @@ def dataset_actions(request, pk, action):
         if action == "rejected":
 
             dataset.status = "rejected"
+            remark = request.data.get('remark', None)
+            if remark is None:
+                return Response({"error": "remark is required"}, status=status.HTTP_400_BAD_REQUEST) 
+               
             dataset.save()
+            message = f"""
+Your dataset {str(dataset.title).capitalize()} has been rejected. 
+
+Admin Remark: {str(remark).title()}
+Please contact the administrator for more information.
+
+"""
+            dataset_actions_mail(user=dataset.user, action="rejected", message=message)
+
             return Response({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
         
         elif action == "published":
 
             dataset.status = "published"
             dataset.save()
+            message = f"""
+Your dataset {str(dataset.title).capitalize()} has been published successfully.
+
+"""
+            dataset_actions_mail(user=dataset.user, action="published", message=message)
+
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
         elif action == "unpublished":
 
             dataset.status = "unpublished"
             dataset.save()
+            message = f"""
+Your dataset {str(dataset.title).capitalize()} has been unpublished.
+Please contact the administrator for more information.
+
+"""
+            dataset_actions_mail(user=dataset.user, action="unpublished", message=message)
+
             return Response({"message": "dataset unpublished successfully"}, status=status.HTTP_200_OK)
+
         
         elif action == "further_review":
-                
+
             dataset.status = "further_review"
             dataset.save()
+            message = f"""
+Your dataset {str(dataset.title).capitalize()} has been kept for further review.
+Please contact the administrator for more information.
+
+"""
+            dataset_actions_mail(user=dataset.user, action="further_review", message=message)
+
             return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
         
         elif action == "delete":
                         
             dataset.is_deleted = True
             dataset.save()
+            message = f"""
+Your dataset {str(dataset.title).capitalize()} has been deleted. As it goes against our policies.
+Please contact the administrator for more information.
+
+"""
+            dataset_actions_mail(user=dataset.user, action="deleted", message=message)
+            
             return Response({"message": "dataset deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
@@ -198,31 +240,69 @@ def organisation_actions(request, pk, action):
 
             organisation.status = "rejected"
             organisation.save()
+
+            users = organisation.users.all()
+            message = """
+Your request to create an organisation has been rejected. Please contact the administrator for more information.
+
+"""
+            for user in users:
+                organisation_actions_mail(user=user, action="rejected", message=message)
             
             return Response({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
         
         elif action == "approve":
 
             organisation.status = "approved"
+            organisation.is_active = True
             organisation.save()
+
+            users = organisation.users.all()
+            message = f"""
+Your request to create an organisation {str(organisation.name).capitalize()} has been approved. Please contact the administrator for more information.
+
+"""
+            for user in users:
+                organisation_actions_mail(user=user, action="approved", message=message)
+            
             return Response({"message": "organisation approved successfully"}, status=status.HTTP_200_OK)
-        
+
+
         elif action == "block":
 
             organisation.is_active = False
             organisation.save()
+
+            users = organisation.users.all()
+            message = f"""
+The organisation {str(organisation.name).capitalize()} has been placed on a temporary ban. Please contact the administrator for more information.
+"""
+            for user in users:
+                organisation_actions_mail(user=user, action="blocked", message=message)
+        
             return Response({"message": "organisation blocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "unblock":
                 
             organisation.is_active = True
             organisation.save()
+
+            users = organisation.users.all()
+            message = f"""
+
+The tempoary ban place on the organisation {str(organisation.name).capitalize()} has been lifted. Please contact the administrator for more information.
+
+"""
+            for user in users:
+                organisation_actions_mail(user=user, action="unblocked", message=message)
+
             return Response({"message": "organisation unblocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "delete":
                     
             organisation.is_deleted = True
             organisation.save()
+
             return Response({"message": "organisation deleted successfully"}, status=status.HTTP_200_OK)
 
         else:
