@@ -534,7 +534,6 @@ def resend_pin(request, pk):
 
 
 
-
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])

@@ -37,7 +37,7 @@ class PublicCategoryView(APIView):
     permission_classes = [PublicPermissions]
 
     def get(self, request):
-        categories = Categories.objects.filter(is_deleted=False).order_by('-created_at')
+        categories = Categories.objects.filter(is_deleted=False).order_by('name')
         serializer = CategorySerializer(categories, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
