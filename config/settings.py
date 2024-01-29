@@ -154,7 +154,7 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_Access_Key")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_Secret_Access_Key")
 AWS_S3_REGION_NAME = os.getenv("AWS_Storage_Region")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_Storage_Bucket_Name")
-AWS_S3_CUSTOM_DOMAIN = "d1cc9gva10xzzu.cloudfront.net"
+# AWS_S3_CUSTOM_DOMAIN = "d1cc9gva10xzzu.cloudfront.net"
 # AWS_CLOUDFRONT_KEY_ID = os.getenv("AWS_Cloudfront_Key_ID")
 # AWS_CLOUDFRONT_KEY = str(os.getenv("AWS_Cloudfront_Private_Key").encode('utf-8').strip())
 # print(AWS_CLOUDFRONT_KEY)

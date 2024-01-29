@@ -53,7 +53,6 @@ class PublicCategoryDetailView(generics.RetrieveAPIView):
 
 
 
-
 class PublicOrganisationView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
