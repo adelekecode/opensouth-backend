@@ -58,7 +58,7 @@ class PublicOrganisationView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
-    queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('-created_at')
+    queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('name')
     pagination_class = LimitOffsetPagination
 
 
