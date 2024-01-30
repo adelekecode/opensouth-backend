@@ -180,7 +180,7 @@ class PublicNews(APIView):
 
     def get(self, request):
 
-        news = News.objects.filter(is_deleted=False, is_published=True).order_by('-created_at')
+        news = News.objects.filter(is_deleted=False, status='published').order_by('-created_at')
         serializer = NewsSerializer(news, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -190,6 +190,18 @@ class PublicNewsDetailView(generics.RetrieveAPIView):
     
     permission_classes = [PublicPermissions]
     serializer_class = NewsSerializer
-    queryset = News.objects.filter(is_deleted=False, is_published=True).order_by('-created_at')
+    queryset = News.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
+
+
+class PublicTags(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    def get(self, request):
+
+        tags = Tags.objects.filter(is_deleted=False).order_by('name')
+        serializer = TagsSerializer(tags, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

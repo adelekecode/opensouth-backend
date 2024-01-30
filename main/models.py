@@ -432,9 +432,9 @@ class News(models.Model):
     slug = models.SlugField(max_length=650, null=True)
     body = models.TextField()
     image = models.ImageField(upload_to="news_images/", null=True)
+    status = models.CharField(max_length=250, default="draft", choices=(("draft", "draft"), ("published", "published"), ("unpublished", "unpublished")))
     views = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
-    is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
