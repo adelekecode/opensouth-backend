@@ -21,6 +21,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from datetime import datetime
 from rest_framework.pagination import PageNumberPagination
+from accounts.serializers import *
 from rest_framework import viewsets
 # Create your views here.
 
@@ -216,3 +217,11 @@ class PublicTags(APIView):
             list.append(data)
 
         return Response(list, status=status.HTTP_200_OK)
+
+
+class PublicUserDetailView(generics.RetrieveAPIView):
+
+    permission_classes = [PublicPermissions]
+    serializer_class = CustomUserSerializer
+    queryset = User.objects.filter(is_deleted=False)
+    lookup_field = 'pk'

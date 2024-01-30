@@ -51,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name     = models.CharField(_('last name'),max_length = 250)
     role          = models.CharField(_('role'), max_length = 255, choices=ROLE_CHOICES)
     email         = models.EmailField(_('email'), unique=True)
-    about        = models.TextField(_('about'), blank=True, null=True)
+    bio        = models.TextField(_('bio'), blank=True, null=True)
     image = models.ImageField(
         upload_to='profile_photos/', 
         validators=[
