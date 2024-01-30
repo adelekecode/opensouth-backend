@@ -203,7 +203,7 @@ class PublicTags(APIView):
 
         tags = Tags.objects.filter(is_deleted=False).order_by('name')
         list = []
-        
+
         for tag in tags:
             data = {
                 "id": tag.pk,
@@ -213,6 +213,6 @@ class PublicTags(APIView):
                 "updated_at": tag.updated_at
 
             }
-        list.append(data)
+            list.append(data)
 
         return Response(list, status=status.HTTP_200_OK)
