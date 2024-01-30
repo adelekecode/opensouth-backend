@@ -436,10 +436,18 @@ def news_actions(request, pk, action):
         
         if action == "publish":
 
-            news.is_published = True
+            news.status = "published"
             news.save()
             
             return Response({"message": "news objectt updated successfully"}, status=status.HTTP_200_OK)
+        
+        if action == "unpublish":
+
+            news.satus = "unpublished"
+            news.save()
+
+            return Response({"message": "news updated successfully"}, status=status.HTTP_200_OK)
+        
         
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
