@@ -202,6 +202,17 @@ class PublicTags(APIView):
     def get(self, request):
 
         tags = Tags.objects.filter(is_deleted=False).order_by('name')
-        serializer = TagsSerializer(tags, many=True)
+        list = []
+        
+        for tag in tags:
+            data = {
+                "id": tag.pk,
+                "name": tag.name,
+                "slug": tag.slug,
+                "created_at": tag.created_at,
+                "updated_at": tag.updated_at
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            }
+        list.append(data)
+
+        return Response(list, status=status.HTTP_200_OK)
