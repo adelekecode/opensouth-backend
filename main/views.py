@@ -329,11 +329,17 @@ class CreateDatasetFiles(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
         
-        serialized_data = DatasetFileSerializer(d_set).data
-        file_name = serialized_data['file_name']
+        if d_set:
         
-        d_set.file_name = file_name.split("/")[-1].split(".")[0]
-        d_set.save()
+            serialized_data = DatasetFileSerializer(d_set).data
+            file_name = serialized_data['file_name']
+            
+            d_set.file_name = file_name.split("/")[-1].split(".")[0]
+            d_set.save()
+
+        else:
+            return Response({"error": "file not saved"}, status=400)
+        
        
 
         data = {
