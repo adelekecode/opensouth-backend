@@ -332,7 +332,7 @@ class CreateDatasetFiles(APIView):
         if d_set:
         
             serialized_data = DatasetFileSerializer(d_set).data
-            file_name = serialized_data['file_name']
+            file_name = serialized_data['file_url']
             
             d_set.file_name = file_name.split("/")[-1].split(".")[0]
             d_set.save()
