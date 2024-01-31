@@ -225,3 +225,23 @@ class PublicUserDetailView(generics.RetrieveAPIView):
     serializer_class = CustomUserSerializer
     queryset = User.objects.filter(is_deleted=False)
     lookup_field = 'pk'
+
+
+
+class PublicUserDataset(generics.ListAPIView):
+
+    permission_classe = [PublicPermissions]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
+    pagination_class = LimitOffsetPagination
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound("user not found")
+        
+        return Datasets.objects.filter(is_deleted=False, status='published', user=user).order_by('-created_at')
+

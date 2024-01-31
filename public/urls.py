@@ -21,5 +21,6 @@ urlpatterns = [
     path('public/news/<str:slug>/', PublicNewsDetailView.as_view(), name="public_news_detail"),
     path('public/tags/', PublicTags.as_view(), name="public_tags"),
     path('public/user/pk/<uuid:pk>/detail/', PublicUserDetailView.as_view(), name="public_user_detail"),
+    path('public/user/pk/<uuid:pk>/datasets/', PublicUserDataset.as_view(), name="public_user_datasets"),
 
 ]
