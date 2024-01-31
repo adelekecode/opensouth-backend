@@ -59,23 +59,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
         model = DatasetFiles
         fields = "__all__"
 
-    # def validate(self, attrs):
-    #     if attrs["file"].size > 50000000:
-    #         raise serializers.ValidationError("File size must be less than 50mb")
-    #     return attrs
-    
-    def save(self, **kwargs):
-        file = self.validated_data["file"]
-        format = self.validated_data["format"]
-        size = self.validated_data["size"]
-        dataset = self.validated_data["dataset"]
-        try:
-            file = DatasetFiles.objects.create(file=file, dataset=dataset, user=self.context["request"].user, format=format, size=size)
-        except Exception as e:
-            raise serializers.ValidationError("error: " + str(e))
-        
-        return file
-
+  
         
 
 

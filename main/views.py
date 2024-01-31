@@ -22,6 +22,7 @@ from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from accounts.permissions import *
+import hashlib
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
@@ -310,27 +311,30 @@ class CreateDatasetFiles(APIView):
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
-       
-        serializer.validated_data['dataset'] = dataset
-        serializer.save()
-    
         
+        file = serializer.validated_data['file']
         
-        serialized_data = DatasetFileSerializer(serializer.instance).data
-        # file_name = serialized_data['file_url']
-        
-        # serializer.instance.file_name = file_name.split("/")[-1].split(".")[0]
-        # serializer.instance.save()
+        sha256 = hashlib.sha256(file.read()).hexdigest()
 
-    
+        if DatasetFiles.objects.filter(sha256=sha256).exists():
+            return Response({"error": "file with this contents already exists"}, status=400)
+        
+        serializer.save(
+            user = request.user,
+            dataset = dataset,
+
+        )
+        serialized_ = DatasetFileSerializer(serializer.instance).data
+
+        file_name = serialized_['file_url'].split('/')[-1].split('.')[0]
+        serializer.instance.file_name = file_name
+        serializer.instance.save()
+
+        return Response(DatasetFileSerializer(serializer.instance).data, status=200)
+        
         
        
-
-        data = {
-            "message": "file uploaded successfully",
-            "data": serialized_data
-        }
-        return Response(data, status=200)
+       
 
 
 
