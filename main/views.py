@@ -311,34 +311,18 @@ class CreateDatasetFiles(APIView):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
        
-
-        file = serializer.validated_data['file']
-        format = serializer.validated_data['format']
-        size = serializer.validated_data['size']
-
-
-        try:
-            d_set = DatasetFiles.objects.create(
-                dataset=dataset,
-                user=request.user,  
-                file=file,
-                format=format,
-                size=size
-              
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
+        serializer.validated_data['dataset'] = dataset
+        serializer.save()
+    
         
-        if d_set:
         
-            serialized_data = DatasetFileSerializer(d_set).data
-            file_name = serialized_data['file_url']
-            
-            d_set.file_name = file_name.split("/")[-1].split(".")[0]
-            d_set.save()
+        serialized_data = DatasetFileSerializer(serializer.instance).data
+        file_name = serialized_data['file_url']
+        
+        serializer.instance.file_name = file_name.split("/")[-1].split(".")[0]
+        serializer.instance.save()
 
-        else:
-            return Response({"error": "file not saved"}, status=400)
+    
         
        
 
