@@ -204,6 +204,7 @@ class PublicTagsView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     queryset = Tags.objects.filter(is_deleted=False)
+    search_fields = ('name', 'slug')
 
 
 
