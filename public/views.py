@@ -202,9 +202,12 @@ class PublicTagsView(generics.ListAPIView):
     permission_classes = [PublicPermissions]
     serializer_class = PublicTagSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    queryset = Tags.objects.filter(is_deleted=False)
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    queryset = Tags.objects.all()
     search_fields = ('name', 'slug')
+
+
+
 
 
 
