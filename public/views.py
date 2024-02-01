@@ -21,6 +21,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from datetime import datetime
 from rest_framework.pagination import PageNumberPagination
+from .serializers import *
 from accounts.serializers import *
 from rest_framework import viewsets
 # Create your views here.
@@ -196,27 +197,18 @@ class PublicNewsDetailView(generics.RetrieveAPIView):
     lookup_url_kwarg = 'slug'
 
 
-class PublicTags(APIView):
+class PublicTagsView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
+    serializer_class = PublicTagSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    queryset = Tags.objects.filter(is_deleted=False)
 
-    def get(self, request):
 
-        tags = Tags.objects.filter(is_deleted=False).order_by('name')
-        list = []
 
-        for tag in tags:
-            data = {
-                "id": tag.pk,
-                "name": tag.name,
-                "slug": tag.slug,
-                "created_at": tag.created_at,
-                "updated_at": tag.updated_at
 
-            }
-            list.append(data)
 
-        return Response(list, status=status.HTTP_200_OK)
 
 
 class PublicUserDetailView(generics.RetrieveAPIView):
@@ -240,6 +232,7 @@ class PublicUserDataset(generics.ListAPIView):
         pk = self.kwargs['pk']
         try:
             user = User.objects.get(pk=pk)
+            
         except User.DoesNotExist:
             raise NotFound("user not found")
         

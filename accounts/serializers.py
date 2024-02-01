@@ -22,7 +22,7 @@ User = get_user_model()
 class UserRegistrationSerializer(BaseUserRegistrationSerializer):
     
     class Meta(BaseUserRegistrationSerializer.Meta):
-        fields = ['id',"first_name", "last_name", "email", "role", "password", "is_active"]
+        fields = ['id', "first_name", "last_name", "email", "role", "password", "is_active"]
         
     
 class UserDeleteSerializer(serializers.Serializer):
