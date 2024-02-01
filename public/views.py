@@ -200,11 +200,11 @@ class PublicNewsDetailView(generics.RetrieveAPIView):
 class PublicTagsView(generics.ListAPIView):
 
     permission_classes = [PublicPermissions]
-    serializer_class = PublicTagSerializer
+    serializer_class = TagsSerializer
     pagination_class = LimitOffsetPagination
     # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     queryset = Tags.objects.all()
-    search_fields = ('name', 'slug')
+    # search_fields = ('name', 'slug')
 
 
 
