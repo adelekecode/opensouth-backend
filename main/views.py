@@ -14,6 +14,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound, ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -433,6 +435,7 @@ class UserDataset(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = DatasetSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     queryset = Datasets.objects.filter(is_deleted=False)
 
     def get_queryset(self):
