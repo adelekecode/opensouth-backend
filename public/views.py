@@ -240,5 +240,5 @@ class PublicUserDataset(generics.ListAPIView):
         except User.DoesNotExist:
             raise NotFound("user not found")
         
-        return Datasets.objects.filter(is_deleted=False, status='published', user=user).order_by('-created_at')
+        return Datasets.objects.filter(is_deleted=False, status='published', user=user, type='individual').order_by('-created_at')
 

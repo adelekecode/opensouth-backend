@@ -281,8 +281,10 @@ class DatasetView(APIView):
             
 
             serializer.validated_data['organisation'] = organisation
+            serializer.validated_data['type'] = 'organisation'
 
         serializer.validated_data['user'] = request.user
+        serializer.validated_data['type'] = 'individual'
         serializer.validated_data['category'] = category
         serializer.validated_data['geojson'] = {
 
@@ -440,7 +442,7 @@ class UserDataset(generics.ListAPIView):
     queryset = Datasets.objects.filter(is_deleted=False)
 
     def get_queryset(self):
-        return Datasets.objects.filter(user=self.request.user, is_deleted=False).order_by('-created_at')
+        return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
     
 
 

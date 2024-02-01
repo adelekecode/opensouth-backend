@@ -174,6 +174,7 @@ class Datasets(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="dataset_user")
     title = models.CharField(max_length=650)
     slug = models.SlugField(max_length=650, null=True)
+    type = models.CharField(max_length=200, null=True)
     license = models.CharField(max_length=650)
     description = models.TextField()
     dui = models.CharField(max_length=650, null=True)
