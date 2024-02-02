@@ -388,12 +388,18 @@ class TagsView(APIView):
         serializers = TagsSerializer(data=request.data)
         serializers.is_valid(raise_exception=True)
 
+        data = serializers.data
+        if 'keywords' not in data:
+            return Response({"error": " 'keywords' field is required"})
+        
+        keywords =  data['keywords']
+
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
         
-        tags = serializers.validated_data['keywords']
+        tags = keywords
 
         for tag in tags:
             slug = slugify(tag)
@@ -412,12 +418,18 @@ class TagsView(APIView):
         serializers = TagsSerializer(data=request.data)
         serializers.is_valid(raise_exception=True)
 
+        data = serializers.data
+        if 'keywords' not in data:
+            return Response({"error": " 'keywords' field is required"})
+        
+        keywords =  data['keywords']
+
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
         
-        tags = serializers.validated_data['keywords']
+        tags = keywords
 
         for tag in tags:
             slug = slugify(tag)
@@ -444,6 +456,29 @@ class UserDataset(generics.ListAPIView):
     def get_queryset(self):
         return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
     
+
+class UserDatasetFiles(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetFileSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = DatasetFiles.objects.filter(is_deleted=False).order_by('-created_at')
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if self.request.user != dataset.user:
+            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        
+        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset, user=self.request.user,).order_by('-created_at')
+
 
 
 class UserDatasetDetailView(generics.RetrieveUpdateAPIView):

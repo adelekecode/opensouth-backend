@@ -3,12 +3,14 @@ from main.models import Datasets
 
 
 class Command(BaseCommand):
-    help = 'Create Superuser'
+    help = 'db update'
 
 
     def handle(self, *args, **options):
 
         datasets = Datasets.objects.all()
+
+
         list = []
         for dataset in datasets:
             data = {
@@ -20,18 +22,18 @@ class Command(BaseCommand):
 
         print(list)
 
-        
+
             # if dataset.organisation:
             #     dataset.type = 'organisation'
             #     dataset.save()
+        
+
             # else:
             #     dataset.type = 'individual'
             #     dataset.save()
            
-
-
         
-        self.stdout.write(self.style.SUCCESS("Successfully deleted users"))
+        self.stdout.write(self.style.SUCCESS("Successfully updated"))
 
 
 

@@ -80,7 +80,7 @@ class PublicDatasetView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
-    search_fields = ['title', 'category__name', 'tags__name']
+    search_fields = ['title', 'category__name', 'tags__name', 'organisation_name']
 
 
     def list(self, request, *args, **kwargs):
@@ -92,9 +92,13 @@ class PublicDatasetView(generics.ListAPIView):
         end_date = request.GET.get('end_date', None)
         format = request.GET.get('format', None)
         spatial_coverage = request.GET.get('spatial_coverage', None)
+        license = request.GET.get('license', None)
 
         
         queryset = self.filter_queryset(self.get_queryset())
+
+        if license:
+            queryset = queryset.filter(license=license)
 
         if category:
             queryset = queryset.filter(category__name=category)

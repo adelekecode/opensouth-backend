@@ -73,6 +73,29 @@ class AdminDatatsetView(generics.ListAPIView):
 
 
 
+class AdminDatasetFiles(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+    serializer_class = DatasetFileSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = DatasetFiles.objects.filter(is_deleted=False).order_by('-created_at')
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset).order_by('-created_at')
+
+
+
+
+
 class AdminOrganisationView(generics.ListAPIView):
 
     permission_classes = [IsAdmin]
@@ -610,3 +633,6 @@ def user_actions(request, pk):
         
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+

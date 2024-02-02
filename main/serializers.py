@@ -86,7 +86,7 @@ class DatasetViewsSerializer(serializers.ModelSerializer):
 
 class TagsSerializer(serializers.ModelSerializer):
 
-    keywords = serializers.ListField(child=serializers.CharField(max_length=100), read_only=True)
+    # keywords = serializers.ListField(child=serializers.CharField(max_length=100), read_only=True)
     name = serializers.CharField(max_length=100, required=False)
 
     class Meta:
