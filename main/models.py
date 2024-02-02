@@ -193,6 +193,10 @@ class Datasets(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.title)
+        if self.organisation:
+            self.type = "organisation"
+        else:
+            self.type = "individual"
 
         super(Datasets, self).save(*args, **kwargs)
 
