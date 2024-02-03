@@ -370,7 +370,10 @@ class NewsView(APIView):
         serializer = NewsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "news created successfully"}, status=status.HTTP_201_CREATED)
+
+            data = NewsSerializer(serializer.instance).data
+            
+            return Response(data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
