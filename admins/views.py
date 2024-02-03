@@ -36,6 +36,7 @@ class AdminDatatsetView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = DatasetSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'status', 'slug']
     queryset = Datasets.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
@@ -102,6 +103,7 @@ class AdminOrganisationView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = OrganisationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'status', 'slug']
     queryset = Organisations.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
@@ -389,6 +391,7 @@ class AdminListNewsView(generics.ListAPIView):
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'status', 'slug']
     queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
 
 
@@ -556,6 +559,7 @@ class AdminCategories(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = CategorySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'slug']
     queryset = Categories.objects.filter(is_deleted=False).order_by('-created_at')
     pagination_class = LimitOffsetPagination
 
@@ -571,6 +575,7 @@ class AdminUsers(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = CustomUserSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['email', 'first_name', 'last_name']
     pagination_class = LimitOffsetPagination
     queryset = User.objects.filter(is_deleted=False).order_by('-date_joined')
 
