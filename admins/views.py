@@ -372,7 +372,7 @@ class NewsView(APIView):
             serializer.save()
 
             data = NewsSerializer(serializer.instance).data
-            
+
             return Response(data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -466,6 +466,7 @@ def news_actions(request, pk, action):
         if action == "publish":
 
             news.status = "published"
+            news.published_at = timezone.now()
             news.save()
             
             return Response({"message": "news objectt updated successfully"}, status=status.HTTP_200_OK)

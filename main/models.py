@@ -437,6 +437,7 @@ class News(models.Model):
     status = models.CharField(max_length=250, default="draft", choices=(("draft", "draft"), ("published", "published"), ("unpublished", "unpublished")))
     views = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
