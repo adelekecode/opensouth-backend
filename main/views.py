@@ -448,7 +448,7 @@ class UserDataset(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DatasetSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ('title', 'user__email', 'organisation__name')
+    search_fields = ['title', 'user__email', 'organisation__name']
     queryset = Datasets.objects.filter(is_deleted=False)
 
     def get_queryset(self):
