@@ -22,7 +22,7 @@ User = get_user_model()
 class UserRegistrationSerializer(BaseUserRegistrationSerializer):
     
     class Meta(BaseUserRegistrationSerializer.Meta):
-        fields = ['id',"first_name", "last_name", "email", "role", "password", "is_active"]
+        fields = ['id', "first_name", "last_name", "email", "role", "password", "is_active"]
         
     
 class UserDeleteSerializer(serializers.Serializer):
@@ -31,10 +31,11 @@ class UserDeleteSerializer(serializers.Serializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(style={"input_type": "password"}, write_only=True, required=False)
     image_url = serializers.ReadOnlyField()
+    organisations = serializers.ReadOnlyField()
     
     class Meta():
         model = User
-        fields = ['id',"first_name", "last_name", "email", "password", "is_active", "role", "groups", "user_permissions", "is_superuser", "image_url", "date_joined"]
+        fields = ['id',"first_name", "last_name", "email", "password", "bio", "is_active", "role", "groups", "user_permissions", "is_superuser", "image_url", "date_joined", "organisations"]
 
         extra_kwargs = {
             'password': {'write_only': True}

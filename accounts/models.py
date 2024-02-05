@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('user', 'User'),
+        ('moderator', 'Moderator')
     )   
     
     
@@ -50,6 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name     = models.CharField(_('last name'),max_length = 250)
     role          = models.CharField(_('role'), max_length = 255, choices=ROLE_CHOICES)
     email         = models.EmailField(_('email'), unique=True)
+    bio        = models.TextField(_('bio'), blank=True, null=True)
     image = models.ImageField(
         upload_to='profile_photos/', 
         validators=[
@@ -94,6 +96,28 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.image.url
         return None
     
+    @property
+    def organisations(self):
+        from main.models import Organisations
+
+        orgs = Organisations.objects.filter(users=self)
+        if orgs:
+            data = []
+            for org in orgs:
+                list = model_to_dict(org, fields=["id", "name", "slug"])
+                list["id"] = org.id
+                data.append(list)
+
+            return data
+        
+        return None
+    
+               
+            
+
+           
+
+    
     def delete(self):
         
         """
@@ -117,7 +141,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().delete()
         
         return 
-        
         
     class Meta:
         """additional permission to the  user model for viewing dashboards"""
@@ -155,6 +178,7 @@ class ActivationOtp(models.Model):
 
 
 class ActivityLog(models.Model):
+    
     """
     Database schema for user activity logs.
 

@@ -15,6 +15,9 @@ from django.contrib.auth import authenticate, logout
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView , RetrieveUpdateAPIView
 from rest_framework.decorators import action
+from main.models import *
+from main.serializers import *
+
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from .models import ActivityLog
@@ -270,6 +273,9 @@ def logout_view(request):
         return Response({"message": "failed", "error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+
 @swagger_auto_schema(method="patch",request_body=FirebaseSerializer())
 @api_view(["PATCH"])
 @authentication_classes([JWTAuthentication])
@@ -346,8 +352,6 @@ def activity_logs(request):
     
     logs = ActivityLog.objects.filter(is_deleted=False, user=request.user).order_by("-date_created").values("action")[:10]
     
-    
-    
     return Response(logs, status=status.HTTP_200_OK)
 
 
@@ -362,11 +366,8 @@ def image_upload(request):
         serializer = ImageUploadSerializer(data=request.data)
         
         serializer.is_valid(raise_exception=True)
-        
         user = request.user
-        
         user.image = serializer.validated_data.get("image")
-        
         user.save()
         
         return Response({"message": "upload successful"}, status=status.HTTP_200_OK)
@@ -391,12 +392,13 @@ class PasswordResetView(APIView):
         
         if user:
             if user.is_active:
+
                 token_generator = PasswordResetTokenGenerator()
                 token = token_generator.make_token(user)
                 uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                 referer = request.META.get('HTTP_REFERER')
                 reset_url = f"{referer}reset-password/{uidb64}/{token}"
-                reset_password_mail(email=email, url=reset_url, name=user.first_name)
+                reset_password_mail(email=email, url=reset_url, name=user.first_name.title())
 
                 return Response({"message": "Reset password mail sent"}, status=200)
             
@@ -414,6 +416,7 @@ class PasswordResetConfirmView(APIView):
     @swagger_auto_schema(method="post", request_body=PasswordResetSerializer())
     @action(methods=["post"], detail=True)
     def post(self, request, uidb64, token):
+
         try:
             user_id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=user_id)
@@ -425,7 +428,46 @@ class PasswordResetConfirmView(APIView):
             serializer.is_valid(raise_exception=True)
             user.set_password(serializer.data.get("password"))
             user.save()
+
             return Response({"message": "password reset successful"}, status=200)
         
         else:
             return Response({"error": "invalid token"}, status=400)
+        
+
+
+
+
+
+
+        
+@swagger_auto_schema(methods=['POST'], request_body=PinSerializer())
+@api_view(['POST'])
+def pin_verification(request):
+
+    if request.method == 'POST':
+        
+        serializer = PinSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pin = serializer.validated_data['pin']
+
+        if VerificationPin.objects.filter(pin=pin).exists():
+
+            verify_pin = VerificationPin.objects.get(pin=pin)
+
+            if verify_pin.is_active == False:
+                return Response({"error": "pin has been used"}, status=400)
+            
+            if verify_pin.organisation.is_verified:
+                return Response({"error": "organisation already verified"}, status=400)
+            
+            verify_pin.is_active = False
+            verify_pin.save()
+
+            verify_pin.organisation.is_verified = True
+            verify_pin.organisation.save()
+
+            return Response({"message": "organisation verified successfully"}, status=200)
+        
+        return Response({"error": "invalid pin"}, status=400)
+

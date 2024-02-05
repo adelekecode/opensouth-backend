@@ -21,5 +21,7 @@ urlpatterns = [
     path("activity-logs/", views.activity_logs),
     path("auth/profile-image-upload/", views.image_upload, name="image-upload"),
     path('auth/reset-password/', views.PasswordResetView.as_view(), name="reset_password_view"),
+    path('organisations/verification/', views.pin_verification, name="organisation_verification"),
+
     path('auth/reset-password/verify/<str:uidb64>/<str:token>/', views.PasswordResetConfirmView.as_view(), name="reset_password_confirm_view"),
 ]

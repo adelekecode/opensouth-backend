@@ -28,7 +28,6 @@ def generate_otp(n):
 def send_details(sender, instance, created, **kwargs):
     if (created and instance.is_superuser!=True) and instance.is_admin==True:
         data =  instance.__dict__
-        # print(instance.password)
         subject = f"YOUR ADMIN ACCOUNT FOR {site_name}".upper()
         
         message = f"""Hi, {str(instance.first_name).title()}.

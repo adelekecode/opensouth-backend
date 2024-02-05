@@ -1,27 +1,37 @@
+import hashlib
 from django.shortcuts import render
 from .serializers import *
 from .models import *
+from django.db import IntegrityError
+from accounts.serializers import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
+from .email import *
+from .helpers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, NotFound, ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
-
+from django.utils.text import slugify
 from accounts.permissions import *
+import hashlib
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Permission, Group
 from django.db.models import Q
+from rest_framework.pagination import LimitOffsetPagination
+from accounts.serializers import CustomUserSerializer
 import requests
 import os
 
@@ -30,12 +40,16 @@ import os
 
 
 
+
+
 User = get_user_model()
 
 class CategoryView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    serializer_class = CategorySerializer
+    queryset = Categories.objects.filter(is_deleted=False)
 
     @swagger_auto_schema(methods=['POST'], request_body=CategorySerializer())
     @action(detail=True, methods=['POST'])
@@ -46,18 +60,15 @@ class CategoryView(APIView):
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
+        slug = slugify(name)
 
-        if Categories.objects.filter(name=name).exists():
+        if Categories.objects.filter(slug=slug).exists():
             return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
-    def get(self, request):
-
-        categories = Categories.objects.filter(is_deleted=False)
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 
@@ -75,73 +86,150 @@ class OrganisationView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(methods=['POST'], request_body=OrganisationSeriializer())
+
+    @swagger_auto_schema(methods=['POST'], request_body=OrganisationSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request):
 
-        serializer = OrganisationSeriializer(data=request.data)
+        serializer = OrganisationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
+        email = serializer.validated_data['email']
+        type = serializer.validated_data['type']
+        slug = slugify(name)
 
-        if Organisations.objects.filter(name=name).exists():
+        username, domain = email.split('@')
+
+        if domain == "gmail.com":
+            if type == "cooperate_organisation":
+                return Response({"error": "gmail is not allowed for cooperate organisations"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if Organisations.objects.filter(slug=slug).exists():
             return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
+        
+        serializer.save(
+            user = request.user
+        )
+
         serializer.instance.users.add(request.user)
-        serializer.instance.user = request.user
         serializer.instance.save()
+
+  
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-
-    def get(self, request):
-        organisations = Organisations.objects.filter(users=request.user, is_deleted=False)
-        serializer = OrganisationSeriializer(organisations, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
 
 
 
 
-class OrganisationDetailView(generics.RetrieveUpdateDestroyAPIView):
+class OrganisationDetailView(generics.RetrieveUpdateAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = OrganisationSeriializer
+    serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False)
-    lookup_field = 'pk'
+    lookup_field = 'slug'
 
 
 
 
-
-@api_view(['POST', 'DELETE'])
+@swagger_auto_schema(methods=['POST'], request_body=EmailSerializer())
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def add_delete_user_to_organisation(request, org_pk, user_pk):
+@permission_classes([IsAdmin])
+def add_user_to_organisation(request, org_pk):
+
     if request.method == "POST":
-        organisation = Organisations.objects.get(pk=org_pk, users=request.user)
+        serializer = EmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        
         try:
-            user = User.objects.get(pk=user_pk)
+            organisation = Organisations.objects.get(pk=org_pk)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+      
 
         if organisation.users.filter(pk=user.id).exists():
             return Response({"error": "user already exists in user list"}, status=status.HTTP_400_BAD_REQUEST)
+        
         organisation.users.add(user)
+        organisation_add_users(organisation=organisation, user=user)
+
         return Response({"message": "user added successfully"}, status=status.HTTP_200_OK)
-    
-    
-    elif request.method == "DELETE":
-        organisation = Organisations.objects.get(pk=org_pk, users=request.user)
+
+class OrganisationUsers(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomUserSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = User.objects.filter(is_deleted=False)
+
+
+    def get_queryset(self):
+
+        pk = self.kwargs['pk']
+
         try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        users = organisation.users.all()
+
+        return users
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = CustomUserSerializer(page, many=True)
+
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CustomUserSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+       
+
+        
+    
+
+
+
+@api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+def delete_user_from_organisation(request, org_pk, user_pk):
+    
+    if request.method == "DELETE":
+        
+        try:
+            organisation = Organisations.objects.get(pk=org_pk)
             user = User.objects.get(pk=user_pk)
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+     
         if organisation.users.filter(pk=user.id).exists():
+
             organisation.users.remove(user)
+
+            organisation_delete_users(organisation=organisation, user=user)
+
+
             return Response({"message": "user removed successfully"}, status=status.HTTP_200_OK)
-        return Response({"error": "user does not exist in user list"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"error": "user does not exist in user list"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -151,33 +239,63 @@ class DatasetView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+
     @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
     @action(detail=True, methods=['POST'])
-    def post(self, request):
+    def post(self, request, cat_pk):
         
         serializer = DatasetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if 'organisation' in data:
-            organisation_id = data['organisation']
-            organisation = get_object_or_404(Organisations, pk=organisation_id)
+
+        coordinates = request.data.get('coordinates')
+        country = data['spatial_coverage']
+
+        organisation = request.GET.get('organisation_id', None)
+
+       
+        title = data['title']
+        slug = slugify(title)
+
+        if Datasets.objects.filter(slug=slug).exists():
+            return Response({"error": "dataset with this title already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            category = Categories.objects.get(pk=cat_pk)
+        except Categories.DoesNotExist:
+            return Response({"error": "category does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-            if not organisation.users.filter(pk=request.user.id).exists():
+        if organisation:
+
+            try:
+                organisation = Organisations.objects.get(pk=organisation)
+            except Organisations.DoesNotExist:
+
+                return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            
+            if request.user not in organisation.users.all():
                 return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
             
-        # if 'tags' in data:
+            if organisation.status != "approved":
+                return Response({"error": "organisation is not verified"}, status=status.HTTP_401_UNAUTHORIZED)
+            
 
-        
-        if Datasets.objects.filter(title=data['title']).exists():
-            return Response({"error": "dataset with this name already exists "}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer.validated_data["published_by"] = request.user
-        serializer.validated_data["organisation"] = get_object_or_404(Organisations, pk=data['organisation']) if 'organisation' in data else None
-        serializer.validated_data["category"] = get_object_or_404(Categories, pk=data['category']) if 'category' in data else None
+            serializer.validated_data['organisation'] = organisation
+
+        serializer.validated_data['user'] = request.user
+        serializer.validated_data['category'] = category
+        serializer.validated_data['geojson'] = {
+
+            "country": country,
+            "coordinates": coordinates
+        }
         serializer.save()
+
+
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
+      
 
 
 class CreateDatasetFiles(APIView):
@@ -195,16 +313,30 @@ class CreateDatasetFiles(APIView):
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
-        serializer.validated_data["dataset"] = dataset
-        serializer.validated_data["uploaded_by"] = request.user
+        
+        file = serializer.validated_data['file']
+        
+        sha256 = hashlib.sha256(file.read()).hexdigest()
 
-        serializer.save()
+        if DatasetFiles.objects.filter(sha256=sha256).exists():
+            return Response({"error": "file with this contents already exists"}, status=400)
+        
+        serializer.save(
+            user = request.user,
+            dataset = dataset,
 
-        data = {
-            "message": "file uploaded successfully",
-            "data": serializer.data
-        }
-        return Response(data, status=200)
+        )
+        serialized_ = DatasetFileSerializer(serializer.instance).data
+
+        file_name = serialized_['file_url'].split('/')[-1].split('.')[0]
+        serializer.instance.file_name = file_name
+        serializer.instance.save()
+
+        return Response(DatasetFileSerializer(serializer.instance).data, status=200)
+        
+        
+       
+       
 
 
 
@@ -213,8 +345,6 @@ class CreateDatasetFiles(APIView):
 
 class DatasetViewsView(APIView):
 
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(methods=['POST'], request_body=DatasetViewsSerializer())
     @action(detail=True, methods=['POST'])
@@ -229,14 +359,238 @@ class DatasetViewsView(APIView):
 
         if dataset_view.exists():
             dataset_view = dataset_view.first()
-            dataset_view.views += 1
+            dataset_view.count += 1
             dataset_view.save()
+            
             return Response({"message": "dataset view updated"}, status=200)
+        
         else:
             dataset_view = DatasetViews.objects.create(dataset=dataset)
-            dataset_view.views += 1
+            dataset_view.count += 1
             dataset_view.save()
 
             return Response({"message": "dataset views updated"}, status=200)
 
+        
+
+
+class TagsView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(methods=['POST'], request_body=TagsSerializer())
+    @action(detail=True, methods=['POST'])
+    def post(self, request, pk):
+
+        serializers = TagsSerializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+
+        data = serializers.data
+        if 'keywords' not in data:
+            return Response({"error": " 'keywords' field is required"})
+        
+        keywords =  data['keywords']
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        tags = keywords
+
+        for tag in tags:
+            slug = slugify(tag)
+            if Tags.objects.filter(slug=slug).exists():
+                tag = Tags.objects.get(slug=slug)
+                dataset.tags.add(tag)
+            else:
+                tag = Tags.objects.create(name=tag)
+                dataset.tags.add(tag)
+
+        return Response({"message": "tags added successfully"}, status=200)
+    
+
+    def delete(self, request, pk):
+
+        serializers = TagsSerializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+
+        data = serializers.data
+        if 'keywords' not in data:
+            return Response({"error": " 'keywords' field is required"})
+        
+        keywords =  data['keywords']
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        tags = keywords
+
+        for tag in tags:
+            slug = slugify(tag)
+            if Tags.objects.filter(slug=slug).exists():
+                tag = Tags.objects.get(slug=slug)
+                dataset.tags.remove(tag)
+            else:
+                return Response({"error": f"tag does not exist {tag}"}, status=400)
+
+        return Response({"message": "tags removed successfully"}, status=200)
+
+
+
+
+class UserDataset(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['title', 'user__email', 'organisation__name']
+    queryset = Datasets.objects.filter(is_deleted=False)
+
+    def get_queryset(self):
+        return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
+    
+
+class UserDatasetFiles(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetFileSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = DatasetFiles.objects.filter(is_deleted=False).order_by('-created_at')
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if self.request.user != dataset.user:
+            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        
+        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset, user=self.request.user,).order_by('-created_at')
+
+
+
+class UserDatasetDetailView(generics.RetrieveUpdateAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+
+    lookup_field = 'pk'
+
+
+    def get_queryset(self):
+        return Datasets.objects.filter(user=self.request.user, is_deleted=False).order_by('-created_at')
+    
+
+
+class UserOrganisation(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrganisationSerializer
+    queryset = Organisations.objects.filter(is_deleted=False)
+
+    def get_queryset(self):
+        return Organisations.objects.filter(users=self.request.user, is_deleted=False).order_by('-created_at')
+    
+
+
+
+class UserOrganisationDatasets(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if self.request.user not in organisation.users.all():
+            return Response({"error": "you are not authorised to view this"}, status=401)
+        
+
+        return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
+    
+
+
+class DatasetDownloadCount(APIView):
+
+
+    def post(self, request, pk):
+
+        files = get_object_or_404(DatasetFiles, pk=pk)
+
+        files.download_count += 1
+        files.save()
+
+        return Response({"message": "download count updated"}, status=200)
+    
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def resend_pin(request, pk):
+    if request.method == 'POST':
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if organisation.is_verified:
+            return Response({"error": "organisation already verified"}, status=400)
+        
+        pin = generate_organisation_pin(organisation=organisation)
+        organisation_verification_email(email=organisation.email, user=organisation.user, organization=organisation, pin=pin)
+
+        return Response({"message": "pin resent successfully"}, status=200)
+    
+
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def request_to_join_organisation(request, pk):
+
+    if request.method == 'POST':
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if organisation.status != "approved":
+            return Response({"error": "request not sent"}, status=401)
+        
+        OrganisationRequests.objects.create(
+            user=request.user,
+            organisation=organisation
+        )
+        
+        if request.user in organisation.users.all():
+            return Response({"error": "you are already a member of this organisation"}, status=400)
+        
+
+        return Response({"message": "request sent successfully"}, status=200)
+        
         
