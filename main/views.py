@@ -586,6 +586,8 @@ def request_to_join_organisation(request, pk):
             user=request.user,
             organisation=organisation
         )
+        if request.user.role == 'admin':
+            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
         if request.user in organisation.users.all():
             return Response({"error": "you are already a member of this organisation"}, status=400)

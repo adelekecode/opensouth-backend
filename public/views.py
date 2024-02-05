@@ -144,14 +144,13 @@ class PublicDatasetDetailView(generics.RetrieveAPIView):
 
 
 
-
-
 class PublicCounts(APIView):
     permission_classes = [PublicPermissions]
 
     def get(self, request):
 
         data = {
+
             "datasets": Datasets.objects.filter(is_deleted=False, status='published').count(),
             "organisations": Organisations.objects.filter(is_deleted=False, status='approved').count(),
             "users": User.objects.filter(is_deleted=False).count(),

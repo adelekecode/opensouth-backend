@@ -643,5 +643,3 @@ def user_actions(request, pk):
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
-
-
