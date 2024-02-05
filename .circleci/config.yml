@@ -40,7 +40,7 @@ jobs:
 # Sequential workflow
 workflows:
 
-  myWorkflow:
+  upstream:
     jobs:
       # - setup_db:
       #     filters:
