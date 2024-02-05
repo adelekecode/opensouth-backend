@@ -80,7 +80,7 @@ class PublicDatasetView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
-    search_fields = ['title', 'category__name', 'tags__name', 'organisation_name']
+    search_fields = ['title', 'category__name', 'tags__name', 'organisation__name']
 
 
     def list(self, request, *args, **kwargs):
