@@ -60,6 +60,8 @@ class PublicOrganisationView(generics.ListAPIView):
     permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('name')
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['name']
     pagination_class = LimitOffsetPagination
 
 

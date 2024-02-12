@@ -70,6 +70,24 @@ class AdminDatatsetView(generics.ListAPIView):
         serializer = DatasetSerializer(queryset, many=True)
 
         return Response(serializer.data)
+    
+
+class AdminDatasetDetails(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+    
+
+    def get(self, request, pk):
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = DatasetSerializer(dataset)
+
+        return Response(serializer.data)
+
 
 
 
@@ -608,7 +626,7 @@ class AdminUsers(generics.ListAPIView):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])
-def user_actions(request, pk):
+def user_actions(request, pk, action):
 
     if request.method == "POST":
 
@@ -617,7 +635,6 @@ def user_actions(request, pk):
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        action = request.data.get('action', None)
 
         if action == "block":
 
