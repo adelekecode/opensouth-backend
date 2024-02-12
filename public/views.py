@@ -101,10 +101,10 @@ class PublicDatasetView(generics.ListAPIView):
             queryset = queryset.filter(license=license)
 
         if category:
-            queryset = queryset.filter(category__name=category)
+            queryset = queryset.filter(category__slug=category)
 
         if organisation:
-            queryset = queryset.filter(organisation__name=organisation)
+            queryset = queryset.filter(organisation__slug=organisation)
 
         if tags:
             queryset = queryset.filter(tags__name=tags)
