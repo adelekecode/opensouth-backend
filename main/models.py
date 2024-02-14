@@ -184,6 +184,7 @@ class Datasets(models.Model):
     organisation = models.ForeignKey(Organisations, on_delete=models.CASCADE, null=True, related_name="organisation_datasets")
     status = models.CharField(max_length=650, choices=status_choices, default="pending")
     tags = models.ManyToManyField("Tags", related_name="dataset_tags", blank=True)
+    views = models.IntegerField(default=0)
     temporal_coverage = models.CharField(max_length=650)
     spatial_coverage = models.CharField(max_length=650, null=True)
     geojson = models.JSONField(null=True)
@@ -215,16 +216,6 @@ class Datasets(models.Model):
     def tags_data(self):
         return [model_to_dict(tag, fields=["name"]) for tag in self.tags.all()]
     
-    
-    @property
-    def views(self):
-        from .models import DatasetViews
-        data = DatasetViews.objects.filter(dataset=self)
-        if data:
-            view = data.first()
-            return model_to_dict(view, fields=["count", "created_at", "updated_at"])
-        
-        return 0
     
     @property
     def publisher_data(self):

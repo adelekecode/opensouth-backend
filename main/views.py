@@ -355,21 +355,10 @@ class DatasetViewsView(APIView):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
         
-        dataset_view = DatasetViews.objects.filter(dataset=dataset)
+        dataset.views += 1
+        dataset.save()
 
-        if dataset_view.exists():
-            dataset_view = dataset_view.first()
-            dataset_view.count += 1
-            dataset_view.save()
-            
-            return Response({"message": "dataset view updated"}, status=200)
-        
-        else:
-            dataset_view = DatasetViews.objects.create(dataset=dataset)
-            dataset_view.count += 1
-            dataset_view.save()
-
-            return Response({"message": "dataset views updated"}, status=200)
+        return Response({"message": "dataset views updated"}, status=200)
 
         
 

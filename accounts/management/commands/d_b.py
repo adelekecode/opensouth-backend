@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from main.models import Datasets
+from main.models import Datasets, DatasetViews
 
 
 class Command(BaseCommand):
@@ -9,29 +9,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         datasets = Datasets.objects.all()
+        views = DatasetViews.objects.all()
 
+        for view in views:
+            dataset = Datasets.objects.get(pk=view.dataset.pk)
+            dataset.views = view.count
+            dataset.save()
+            
+            
 
-        list = []
-        for dataset in datasets:
-            data = {
-                'type': dataset.type,
-                'status': True if dataset.organisation else False
-
-            }
-            list.append(data)
-
-        print(list)
-
-
-            # if dataset.organisation:
-            #     dataset.type = 'organisation'
-            #     dataset.save()
-        
-
-            # else:
-            #     dataset.type = 'individual'
-            #     dataset.save()
-           
         
         self.stdout.write(self.style.SUCCESS("Successfully updated"))
 

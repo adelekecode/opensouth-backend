@@ -173,8 +173,8 @@ class PopularDataset(APIView):
 
     def get(self, request):
 
-        views = DatasetViews.objects.filter(is_deleted=False).order_by('-count')[:9]
-        serializer = DatasetViewsSerializer(views, many=True)
+        views = Datasets.objects.filter(is_deleted=False).order_by('-views')[:9]
+        serializer = DatasetSerializer(views, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
