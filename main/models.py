@@ -142,12 +142,12 @@ class Organisations(models.Model):
     @property
     def views_count(self):
 
-        from .models import DatasetViews
-        views = DatasetViews.objects.filter(dataset__organisation=self)
+        from .models import Datasets
+        views = Datasets.objects.filter(organisation=self)
 
         count = 0
         for view in views:
-            count += view.count
+            count += view.views
 
         return count
 
