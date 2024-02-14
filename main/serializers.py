@@ -75,14 +75,6 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DatasetViewsSerializer(serializers.ModelSerializer):
-
-    dataset_data = serializers.ReadOnlyField()
-    class Meta:
-        model = DatasetViews
-        fields = "__all__"
-
-
 
 class TagsSerializer(serializers.ModelSerializer):
 

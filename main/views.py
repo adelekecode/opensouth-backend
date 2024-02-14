@@ -346,7 +346,7 @@ class CreateDatasetFiles(APIView):
 class DatasetViewsView(APIView):
 
 
-    @swagger_auto_schema(methods=['POST'], request_body=DatasetViewsSerializer())
+    @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request, pk):
 

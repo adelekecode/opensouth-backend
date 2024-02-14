@@ -335,38 +335,6 @@ class DatasetFiles(models.Model):
 
 
 
-class DatasetViews(models.Model):
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dataset = models.OneToOneField(Datasets, on_delete=models.CASCADE, related_name="dataset_views")
-    count = models.IntegerField(default=0)
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-    def __str__(self):
-        return f"{self.dataset.title}"
-    
-    def delete(self):
-        self.is_deleted = True
-        self.save()
-    
-    @property
-    def dataset_data(self):
-        from .models import Datasets
-
-        data = Datasets.objects.get(pk=self.dataset.pk)
-
-        return {
-            "slug": data.slug,
-            "title": data.title,
-            "image": data.image_url if data.image else None,
-            "publisher_data": data.publisher_data
-        }
-
-
-
 
 class VerificationPin(models.Model):
 
