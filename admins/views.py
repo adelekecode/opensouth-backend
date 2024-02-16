@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
+from rest_framework import filters
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
@@ -367,11 +368,10 @@ def organisation_indicators(request):
         "approved": Organisations.objects.filter(is_deleted=False, status="approved").count(),
         "rejected": Organisations.objects.filter(is_deleted=False, status="rejected").count(),
         "pending": Organisations.objects.filter(is_deleted=False, status="pending").count()
-          
+
     }
         
         return Response(data, status=status.HTTP_200_OK)
-    
 
 
 
@@ -411,8 +411,8 @@ class AdminListNewsView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['title', 'status', 'slug']
+    filter_backends = [DjangoFilterBackend, filter.SearchFilter]
+    search_fields = ['title']
     queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
 
 
@@ -420,7 +420,7 @@ class AdminListNewsView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
 
         queryset = self.filter_queryset(self.get_queryset())
-        state = request.query_params.get('state', None)
+        state = request.query_params.get('status', None)
 
         if state == "published":
             queryset = queryset.filter(is_published=True)

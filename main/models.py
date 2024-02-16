@@ -445,5 +445,12 @@ class OrganisationRequests(models.Model):
     def delete(self):
         self.is_deleted = True
         self.save()
+
+    @property
+    def user_data(self):
+        return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
     
 
+    @property
+    def organisation_data(self):
+        return model_to_dict(self.organisation, fields=["id", "name", "slug", "logo_url"])

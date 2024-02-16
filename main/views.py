@@ -545,6 +545,8 @@ class UserOrganisationDatasets(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['title', 'organisation__name']
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -561,6 +563,50 @@ class UserOrganisationDatasets(generics.ListAPIView):
 
         return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
     
+    def list(self, request, *args, **kwargs):
+
+       
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
+        status = request.GET.get('status', None)
+       
+        
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if status == 'pending':
+            queryset = queryset.filter(status='pending')
+        
+        if status == 'published':
+            queryset = queryset.filter(status='published')
+        
+        if status == 'unpublished':
+            queryset = queryset.filter(status='unpublished')
+
+        if status == 'rejected':
+            queryset = queryset.filter(status='rejected')
+        
+        if status == 'further_review':
+            queryset = queryset.filter(status='further_review')
+
+
+        if start_date and end_date:
+
+            Start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            End_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+            queryset = queryset.filter(created_at__range=[Start_date, End_date])
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
 
 class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
 
@@ -638,6 +684,9 @@ def request_to_join_organisation(request, pk):
         
         if request.user in organisation.users.all():
             return Response({"error": "you are already a member of this organisation"}, status=400)
+        
+        if OrganisationRequests.objects.filter(user=request.user, organisation=organisation).exists():
+            return Response({"error": "you have a pending request"}, status=400)
         
 
         return Response({"message": "request sent successfully"}, status=200)

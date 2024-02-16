@@ -11,7 +11,7 @@ from . import views
 
 urlpatterns = [
 
-    
+
     path('admin/datasets/', AdminDatatsetView.as_view(), name="admin_datatsets"),
     path('admin/dataset/<uuid:pk>/', views.AdminDatasetDetails.as_view(), name="admin_dataset_details"),
     path('admin/dataset/pk/<uuid:pk>/files/', views.AdminDatasetFiles.as_view(), name="admin_dataset_views"),
@@ -30,5 +30,6 @@ urlpatterns = [
     path('admin/users/pk/<uuid:pk>/actions/<str:action>/', user_actions, name="admin_users_actions"),
     path('admin/organisation_requests/', AdminOrganisation_Requests.as_view(), name="admin_organisation_requests"),
     path('admin/organisation_requests/pk/<uuid:pk>/actions/<str:action>/', organisation_request_actions, name="admin_organisation_requests_actions"),
-    
+
+
 ]

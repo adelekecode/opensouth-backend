@@ -117,8 +117,8 @@ class NewsSerializer(serializers.ModelSerializer):
 
 class OrganisationRequestSerializer(serializers.ModelSerializer):
 
-    # organisation_data = serializers.ReadOnlyField()
-    # user_data = serializers.ReadOnlyField()
+    organisation_data = serializers.ReadOnlyField()
+    user_data = serializers.ReadOnlyField()
 
     class Meta:
         model = OrganisationRequests
