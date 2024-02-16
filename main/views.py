@@ -464,6 +464,12 @@ class UserDataset(generics.ListAPIView):
         if status == 'unpublished':
             queryset = queryset.filter(status='unpublished')
 
+        if status == 'rejected':
+            queryset = queryset.filter(status='rejected')
+        
+        if status == 'further_review':
+            queryset = queryset.filter(status='further_review')
+
 
         if start_date and end_date:
             Start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
