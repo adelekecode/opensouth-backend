@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from accounts.permissions import *
 from .email import *
 from .helpers import *
+from datetime import datetime
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -442,6 +443,43 @@ class UserDataset(generics.ListAPIView):
 
     def get_queryset(self):
         return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
+    
+    
+    def list(self, request, *args, **kwargs):
+
+       
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
+        status = request.GET.get('status', None)
+       
+        
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if status == 'pending':
+            queryset = queryset.filter(status='pending')
+        
+        if status == 'published':
+            queryset = queryset.filter(status='published')
+        
+        if status == 'unpublished':
+            queryset = queryset.filter(status='unpublished')
+
+
+        if start_date and end_date:
+            Start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            End_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            queryset = queryset.filter(created_at__range=[Start_date, End_date])
+
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
     
 
 class UserDatasetFiles(generics.ListAPIView):
