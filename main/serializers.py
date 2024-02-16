@@ -59,9 +59,6 @@ class DatasetFileSerializer(serializers.ModelSerializer):
         model = DatasetFiles
         fields = "__all__"
 
-  
-        
-
 
 
 

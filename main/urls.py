@@ -22,6 +22,7 @@ urlpatterns = [
     path('datasets/downloads/<uuid:pk>/', DatasetDownloadCount.as_view(), name="datasets_downloads"),
     path('datasets/tags/<uuid:pk>/', TagsView.as_view(), name="tags"),
     path('user/organisations/<uuid:pk>/datasets/', UserOrganisationDatasets.as_view(), name="user_organisation_datasets"),
+    path('user/organisations/dataset/pk/<uuid:pk>/details/', UserOrganisationDatasetDetail.as_view(), name="user_organisation_details"),
     path('user/datasets/', UserDataset.as_view(), name="user_datasets"),
     path('user/dataset/pk/<uuid:pk>/files/', UserDatasetFiles.as_view(), name="user_dataset_files"),
     path('user/datasets/<uuid:pk>/', UserDatasetDetailView.as_view(), name="user_datasets"),

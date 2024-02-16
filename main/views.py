@@ -562,6 +562,22 @@ class UserOrganisationDatasets(generics.ListAPIView):
         return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
     
 
+class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+
+    lookup_field = 'pk'
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+
+        return Datasets.objects.filter(pk = pk, is_deleted=False)
+    
+
 
 class DatasetDownloadCount(APIView):
 
