@@ -620,6 +620,15 @@ class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
 
     def get_queryset(self):
         pk = self.kwargs['pk']
+        org_pk = self.kwargs['org_pk']
+
+        try:
+            organisation = Organisations.objects.get(pk=org_pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if self.request.user not in organisation.users.all():
+            return Response({"error": "you are not authorised to view this"}, status=401)
 
         return Datasets.objects.filter(pk = pk, is_deleted=False)
     
