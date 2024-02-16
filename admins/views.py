@@ -411,7 +411,7 @@ class AdminListNewsView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
-    filter_backends = [DjangoFilterBackend, filter.SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['title']
     queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
 
