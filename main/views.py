@@ -505,10 +505,8 @@ class UserDatasetFiles(generics.ListAPIView):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        if self.request.user != dataset.user:
-            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
-        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset, user=self.request.user,).order_by('-created_at')
+        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset).order_by('-created_at')
 
 
 

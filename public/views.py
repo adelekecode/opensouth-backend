@@ -65,6 +65,37 @@ class PublicOrganisationView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
+    # def list(self, request, *args, **kwargs):
+
+    #     sort = request.GET.get('sort', None)
+
+        
+    #     queryset = self.filter_queryset(self.get_queryset())
+
+    #     if sort == 'relevance':
+    #         queryset = queryset.order_by('-views')
+
+    #     if sort == 'creation_date':
+    #         queryset = queryset.order_by('created_at')
+
+    #     if sort == 'last_update':
+    #         queryset = queryset.order_by('-updated_at')
+       
+
+    #     page = self.paginate_queryset(queryset)
+
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+
+    #     serializer = self.get_serializer(queryset, many=True)
+
+    #     return Response(serializer.data)
+
+
+
+
+
 class PublicOrganisationDetailView(generics.RetrieveAPIView):
 
     permission_classes = [PublicPermissions]
@@ -94,11 +125,21 @@ class PublicDatasetView(generics.ListAPIView):
         end_date = request.GET.get('end_date', None)
         format = request.GET.get('format', None)
         spatial_coverage = request.GET.get('spatial_coverage', None)
+        sort = request.GET.get('sort', None)
         license = request.GET.get('license', None)
 
         
         queryset = self.filter_queryset(self.get_queryset())
 
+        if sort == 'relevance':
+            queryset = queryset.order_by('-views')
+
+        if sort == 'creation_date':
+            queryset = queryset.order_by('created_at')
+
+        if sort == 'last_update':
+            queryset = queryset.order_by('-updated_at')
+        
         if license:
             queryset = queryset.filter(license=license)
 
