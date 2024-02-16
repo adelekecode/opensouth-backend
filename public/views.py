@@ -285,3 +285,22 @@ class PublicUserDataset(generics.ListAPIView):
         
         return Datasets.objects.filter(is_deleted=False, status='published', user=user, type='individual').order_by('-created_at')
 
+
+
+
+class PublicPopularOrganisationDataset(APIView):
+
+    permission_classes = [PublicPermissions]
+    authentication_classes = [JWTAuthentication]
+
+
+    def get(self, request, pk):
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        datasets = Datasets.objects.filter(is_deleted=False, status='published', organisation=organisation).order_by('-views')[:9]
+        serializer = DatasetSerializer(datasets, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
