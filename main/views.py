@@ -377,10 +377,13 @@ class TagsView(APIView):
         serializers.is_valid(raise_exception=True)
 
         data = serializers.data
-        if 'keywords' not in data:
-            return Response({"error": " 'keywords' field is required"})
         
         keywords =  data['keywords']
+        if keywords is None:
+            return Response({"error": " 'keywords' field is required"}, status=400)
+        
+        if keywords == []:
+            return Response({"error": " 'keywords' field is required"}, status=400)
 
         try:
             dataset = Datasets.objects.get(pk=pk)
