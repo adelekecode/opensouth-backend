@@ -9,6 +9,7 @@ from .views import *
 
 
 urlpatterns = [
+    
     path('organisations/', OrganisationView.as_view(), name="organisations"),
     path('organisations/<str:slug>/', OrganisationDetailView.as_view(), name="organisations"),
     path('organisations/<uuid:org_pk>/users/', add_user_to_organisation, name="add_user_to_organisation"),

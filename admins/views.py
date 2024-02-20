@@ -423,10 +423,10 @@ class AdminListNewsView(generics.ListAPIView):
         state = request.query_params.get('status', None)
 
         if state == "published":
-            queryset = queryset.filter(is_published=True)
+            queryset = queryset.filter(status='published')
 
         if state == "unpublished":
-            queryset = queryset.filter(is_published=False)
+            queryset = queryset.filter(status='unpublished')
 
         page = self.paginate_queryset(queryset)
         if page is not None:
