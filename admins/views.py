@@ -428,6 +428,9 @@ class AdminListNewsView(generics.ListAPIView):
         if state == "unpublished":
             queryset = queryset.filter(status='unpublished')
 
+        if state == "draft":
+            queryset = queryset.filter(status='draft')
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NewsSerializer(page, many=True)
