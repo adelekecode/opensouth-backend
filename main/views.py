@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from .email import *
+from django.db.models import Q, Sum
 from .helpers import *
 from datetime import datetime
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -720,9 +721,18 @@ class UserDashboardCounts(APIView):
         user = request.user
 
         datasets = Datasets.objects.filter(user=user, is_deleted=False, type='individual').count()
-
+        organisations = Organisations.objects.filter(users=user, is_deleted=False).count()
+        views = Datasets.objects.filter(user=user, is_deleted=False, type='individual').aggregate(views=Sum('views'))['views']
+        files = DatasetFiles.objects.filter(user=user, is_deleted=False).count()
+        downloads = DatasetFiles.objects.filter(user=user, is_deleted=False).aggregate(downloads=Sum('download_count'))['downloads']
+        
+        
         data = {
-            "datasets": datasets
+            "datasets": datasets,
+            "organisations": organisations,
+            "views": views,
+            "files": files,
+            "downloads": downloads
         }
 
         return Response(data, status=200)
