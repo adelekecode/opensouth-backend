@@ -663,3 +663,20 @@ def user_actions(request, pk, action):
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
+
+
+class AdminDashboardCounts(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+
+        data = {
+            "users": User.objects.filter(is_deleted=False).count(),
+            "organisations": Organisations.objects.filter(is_deleted=False).count(),
+            "datasets": Datasets.objects.filter(is_deleted=False).count(),
+            "news": News.objects.filter(is_deleted=False).count()
+        }
+
+        return Response(data, status=status.HTTP_200_OK)

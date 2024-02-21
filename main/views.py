@@ -736,5 +736,3 @@ class UserDashboardCounts(APIView):
         }
 
         return Response(data, status=200)
-
-       
