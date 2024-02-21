@@ -193,6 +193,7 @@ class Datasets(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        
         self.slug = slugify(self.title)
         if self.organisation:
             self.type = "organisation"
@@ -448,8 +449,9 @@ class OrganisationRequests(models.Model):
 
     @property
     def user_data(self):
-        return model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
-    
+        data = model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+        data["image_url"] = self.user.image_url
+        return data
 
     @property
     def organisation_data(self):

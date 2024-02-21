@@ -687,10 +687,6 @@ def request_to_join_organisation(request, pk):
         if organisation.status != "approved":
             return Response({"error": "request not sent"}, status=401)
         
-        OrganisationRequests.objects.create(
-            user=request.user,
-            organisation=organisation
-        )
         if request.user.role == 'admin':
             return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
@@ -700,7 +696,35 @@ def request_to_join_organisation(request, pk):
         if OrganisationRequests.objects.filter(user=request.user, organisation=organisation, status='pending').exists():
             return Response({"error": "you have a pending request"}, status=400)
         
+        OrganisationRequests.objects.create(
+            user=request.user,
+            organisation=organisation
+        )
 
         return Response({"message": "request sent successfully"}, status=200)
         
-        
+
+
+
+
+
+
+
+class UserDashboardCounts(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+
+        datasets = Datasets.objects.filter(user=user, is_deleted=False, type='individual').count()
+
+        data = {
+            "datasets": datasets
+        }
+
+        return Response(data, status=200)
+
+       

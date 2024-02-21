@@ -65,32 +65,28 @@ class PublicOrganisationView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
-    # def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
 
-    #     sort = request.GET.get('sort', None)
+        sort = request.GET.get('sort', None)
 
         
-    #     queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset())
 
-    #     if sort == 'relevance':
-    #         queryset = queryset.order_by('-views')
+        if sort == 'relevance':
+            queryset = queryset.order_by('-views')
 
-    #     if sort == 'creation_date':
-    #         queryset = queryset.order_by('created_at')
+        if sort == 'most_recent':
+            queryset = queryset.order_by('-created_at')
 
-    #     if sort == 'last_update':
-    #         queryset = queryset.order_by('-updated_at')
-       
+        page = self.paginate_queryset(queryset)
 
-    #     page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
 
-    #     serializer = self.get_serializer(queryset, many=True)
-
-    #     return Response(serializer.data)
+        return Response(serializer.data)
 
 
 
@@ -304,3 +300,4 @@ class PublicPopularOrganisationDataset(APIView):
         serializer = DatasetSerializer(datasets, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
