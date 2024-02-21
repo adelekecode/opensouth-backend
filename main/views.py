@@ -169,6 +169,8 @@ class OrganisationUsers(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomUserSerializer
     pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['email', 'first_name', 'last_name']
     queryset = User.objects.filter(is_deleted=False)
 
 
@@ -378,12 +380,10 @@ class TagsView(APIView):
 
         data = serializers.data
         
+        if 'keywords' not in data:
+            return Response({"error": " 'keywords' field is required"})
+                            
         keywords =  data['keywords']
-        if keywords is None:
-            return Response({"error": " 'keywords' field is required"}, status=400)
-        
-        if keywords == []:
-            return Response({"error": " 'keywords' field is required"}, status=400)
 
         try:
             dataset = Datasets.objects.get(pk=pk)
@@ -697,7 +697,7 @@ def request_to_join_organisation(request, pk):
         if request.user in organisation.users.all():
             return Response({"error": "you are already a member of this organisation"}, status=400)
         
-        if OrganisationRequests.objects.filter(user=request.user, organisation=organisation).exists():
+        if OrganisationRequests.objects.filter(user=request.user, organisation=organisation, status='pending').exists():
             return Response({"error": "you have a pending request"}, status=400)
         
 
