@@ -172,7 +172,7 @@ class OrganisationUsers(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['email', 'first_name', 'last_name']
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.filter(is_deleted=False).order_by('-created_at')
 
 
     def get_queryset(self):
@@ -183,6 +183,7 @@ class OrganisationUsers(generics.ListAPIView):
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=404)
+        
         users = organisation.users.all()
 
         return users
