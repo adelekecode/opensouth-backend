@@ -281,7 +281,7 @@ def organisation_actions(request, pk, action):
         except Datasets.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if action == "reject":
+        if action == "rejected":
 
             organisation.status = "rejected"
             organisation.save()
@@ -296,7 +296,7 @@ Your request to create an organisation has been rejected. Please contact the adm
             
             return Response({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "approve":
+        elif action == "approved":
 
             organisation.status = "approved"
             organisation.is_active = True
