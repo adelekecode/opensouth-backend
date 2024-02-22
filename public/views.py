@@ -203,7 +203,6 @@ class PublicCounts(APIView):
 
 
 
-
 class PopularDataset(APIView):
 
     permission_classes = [PublicPermissions]
@@ -242,13 +241,8 @@ class PublicTagsView(generics.ListAPIView):
     serializer_class = TagsSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    queryset = Tags.objects.filter(is_deleted=False)
+    queryset = Tags.objects.filter(is_deleted=False).order_by('name')
     search_fields = ('name', 'slug')
-
-
-
-
-
 
 
 
@@ -314,7 +308,7 @@ class PublicSupportSystem(APIView):
 
         serializer = SupportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         serializer.save(
             type = 'public',
             subject = 'support'
