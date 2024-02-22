@@ -132,6 +132,7 @@ class AdminOrganisationView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         state = request.GET.get('status', None)
         verified = request.GET.get('verified', None)
+        active = request.GET.get('active', None)
 
         if state == "approved":
             queryset = queryset.filter(status="approved")
@@ -142,10 +143,10 @@ class AdminOrganisationView(generics.ListAPIView):
         if state == "pending":
             queryset = queryset.filter(status="pending")
 
-        if state == "blocked":
+        if active == "False":
             queryset = queryset.filter(is_active=False)
 
-        if state == "unblocked":
+        if active == "True":
             queryset = queryset.filter(is_active=True)
 
         if verified == "true":
