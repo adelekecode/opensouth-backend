@@ -381,9 +381,7 @@ class TagsView(APIView):
 
         data = serializers.data
         
-        if 'keywords' not in data:
-            return Response({"error": " 'keywords' field is required"})
-                            
+        
         keywords =  data['keywords']
 
         try:
@@ -411,8 +409,6 @@ class TagsView(APIView):
         serializers.is_valid(raise_exception=True)
 
         data = serializers.data
-        if 'keywords' not in data:
-            return Response({"error": " 'keywords' field is required"})
         
         keywords =  data['keywords']
 
