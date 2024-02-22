@@ -365,13 +365,10 @@ class TagsView(APIView):
     @action(detail=True, methods=['POST'])
     def post(self, request, pk):
 
-        serializers = TagsSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
-
-        data = serializers.data
+        serializer = TagsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        
-        keywords =  data['keywords']
+        keywords =  serializer.validated_data['keywords']
 
         try:
             dataset = Datasets.objects.get(pk=pk)
@@ -394,12 +391,10 @@ class TagsView(APIView):
 
     def delete(self, request, pk):
 
-        serializers = TagsSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
+        serializer = TagsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        data = serializers.data
-        
-        keywords =  data['keywords']
+        keywords =  serializer.validated_data['keywords']
 
         try:
             dataset = Datasets.objects.get(pk=pk)

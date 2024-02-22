@@ -75,8 +75,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TagsSerializer(serializers.ModelSerializer):
 
-    keywords = serializers.ListField(child=serializers.CharField(max_length=100), write_only=True, required=True)
-    name = serializers.CharField(max_length=100, required=False)
+    keywords = serializers.ListField(child=serializers.CharField(max_length=5000), write_only=True, required=True)
 
 
     extra_kwargs = {
@@ -86,7 +85,7 @@ class TagsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags
-        fields = "__all__"
+        fields = ["id", "name", "slug", "is_deleted", "created_at", "updated_at", "keywords"]
 
 
 
