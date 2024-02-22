@@ -129,3 +129,11 @@ class OrganisationRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganisationRequests
         fields = "__all__"
+
+
+
+class SupportSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Support
+        fields = "__all__"

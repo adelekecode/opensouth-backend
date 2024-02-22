@@ -23,5 +23,5 @@ urlpatterns = [
     path('public/user/pk/<uuid:pk>/detail/', PublicUserDetailView.as_view(), name="public_user_detail"),
     path('public/user/pk/<uuid:pk>/datasets/', PublicUserDataset.as_view(), name="public_user_datasets"),
     path('public/popular/organisation/pk/<uuid:pk>/datasets/', PublicPopularOrganisationDataset.as_view(), name="public_popular_organisation_dataset"),
-
+    path('public/support/system/', PublicSupportSystem.as_view(), name="public_support_system"),
 ]

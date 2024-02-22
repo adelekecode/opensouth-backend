@@ -184,4 +184,40 @@ def dataset_created_mail(email, user, message):
 
 
 
+
+   
+def public_support_mail(to, name, message, address):
+
+    requests.post(
+
+        url="https://api.useplunk.com/v1/send",
+
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+
+        },
+
+        json={
+            "to": to,
+            "subject": "Open South - Public Support",
+            "body": f"""
+            <html> <body> <p>Hello Admin,</p>
+
+<p>A new public support mail.</p>
+
+<p style="font-style: italic;">From: {str(name).capitalize()}</p>
+
+<p style="font-style: italic;">Address: {str(address).capitalize()}</p>
+
+<p style="font-style: italic;">Message: {str(message).capitalize()}</p>
+
+
+<p">Best regards,</p>
+<p>Open South.</p> 
+</body> 
+</html>
+            """
+        }
+    )
     

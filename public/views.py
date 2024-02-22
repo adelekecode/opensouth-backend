@@ -301,3 +301,25 @@ class PublicPopularOrganisationDataset(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+
+
+class PublicSupportSystem(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    @swagger_auto_schema(methods=['POST'], request_body=SupportSerializer())
+    @action(detail=False, methods=['POST'])
+    def post(self, request):
+
+        serializer = SupportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        serializer.save(
+            type = 'public',
+            subject = 'support'
+
+        )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+

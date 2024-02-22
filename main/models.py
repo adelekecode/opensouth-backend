@@ -193,7 +193,7 @@ class Datasets(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        
+
         self.slug = slugify(self.title)
         if self.organisation:
             self.type = "organisation"
@@ -456,3 +456,26 @@ class OrganisationRequests(models.Model):
     @property
     def organisation_data(self):
         return model_to_dict(self.organisation, fields=["id", "name", "slug", "logo_url"])
+    
+
+
+
+
+
+class Support(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_support", null=True)
+    name = models.CharField(max_length=650)
+    email = models.EmailField(null=True)
+    type = models.CharField(max_length=250, null=True)
+    subject = models.CharField(max_length=650, null=True)
+    message = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+
+
+    def __str__(self):
+        return f"{self.name} -- {self.email}"

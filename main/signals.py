@@ -66,3 +66,21 @@ Please visit the following link to view the dataset: https://opensouth.io/datase
             return
         
       
+
+to = 'oluwafemiadeleke13@gmail.com'
+
+
+@receiver(post_save, sender=Support)
+def support_mail(sender, instance, created, **kwargs):
+
+    if created:
+        if instance.type == 'public':
+            public_support_mail(to=to, name=instance.name, message=instance.message, address=instance.email)
+
+            return 
+        return
+    return
+
+
+        
+       
