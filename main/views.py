@@ -188,19 +188,7 @@ class OrganisationUsers(generics.ListAPIView):
 
         return users
 
-    def list(self, request, *args, **kwargs):
-
-        queryset = self.get_queryset()
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = CustomUserSerializer(page, many=True)
-
-            return self.get_paginated_response(serializer.data)
-
-        serializer = CustomUserSerializer(queryset, many=True)
-
-        return Response(serializer.data)
+   
 
        
 
