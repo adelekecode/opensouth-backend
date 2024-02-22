@@ -172,7 +172,7 @@ class OrganisationUsers(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['email', 'first_name', 'last_name']
-    queryset = User.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = User.objects.filter(is_deleted=False).order_by('-date_joined')
 
 
     def get_queryset(self):
