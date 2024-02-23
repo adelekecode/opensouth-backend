@@ -67,7 +67,7 @@ Please visit the following link to view the dataset: https://opensouth.io/datase
         
       
 
-to = 'oluwafemiadeleke13@gmail.com'
+to = 'support@opensouth.io'
 
 
 @receiver(post_save, sender=Support)
