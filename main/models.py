@@ -126,13 +126,13 @@ class Organisations(models.Model):
     @property
     def data_count(self):
         from .models import Datasets
-        return Datasets.objects.filter(organisation=self).count()
+        return Datasets.objects.filter(organisation=self, status='published').count()
     
     @property
     def downloads_count(self):
 
         from .models import DatasetFiles
-        files = DatasetFiles.objects.filter(dataset__organisation=self)
+        files = DatasetFiles.objects.filter(dataset__organisation=self, is_deleted=False)
         count = 0
         for file in files:
             count += file.download_count
@@ -474,7 +474,7 @@ class Support(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
 
 
     def __str__(self):
