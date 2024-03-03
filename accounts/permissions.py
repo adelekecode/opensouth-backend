@@ -109,3 +109,6 @@ class PublicPermissions(BasePermission):
             return True
         else:
             raise PermissionDenied(detail="Unauthorized access -- Forbidden")
+
+
+            

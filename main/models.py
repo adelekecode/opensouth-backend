@@ -20,6 +20,8 @@ class Categories(models.Model):
     name = models.CharField(max_length=650)
     image = models.ImageField(upload_to="category_images/", null=True)
     slug = models.SlugField(max_length=650, null=True)
+    views = models.IntegerField(default=0)
+    downloads = models.IntegerField(default=0)
     description = models.TextField(null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -245,7 +247,7 @@ class Datasets(models.Model):
     @property
     def files(self):
         from .models import DatasetFiles
-        files = DatasetFiles.objects.filter(dataset=self)
+        files = DatasetFiles.objects.filter(dataset=self, is_deleted=False)
         if files:
             list_data = []
             for file in files:
@@ -479,3 +481,20 @@ class Support(models.Model):
 
     def __str__(self):
         return f"{self.name} -- {self.email}"
+    
+
+
+class CategoryAnalysis(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.ForeignKey(Categories, on_delete=models.CASCADE, related_name="category_analysis")
+    attribute = models.CharField(max_length=650)
+    count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f"{self.category.name} -- {self.attribute} -- {self.count}"
+    
+

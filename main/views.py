@@ -319,6 +319,8 @@ class CreateDatasetFiles(APIView):
             dataset = dataset,
 
         )
+
+
         serialized_ = DatasetFileSerializer(serializer.instance).data
 
         file_name = serialized_['file_url'].split('/')[-1].split('.')[0]
@@ -326,12 +328,36 @@ class CreateDatasetFiles(APIView):
         serializer.instance.save()
 
         return Response(DatasetFileSerializer(serializer.instance).data, status=200)
-        
-        
-       
-       
 
 
+    def delete(self, request, pk):
+
+        serializer = DatasetFileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        file_id = request.GET.get('file_id', None)
+        
+        if not file_id:
+            return Response({"error": "url params file_id is required"}, status=400)
+        
+        if not DatasetFiles.objects.filter(pk=file_id).exists():
+            return Response({"error": "file does not exist"}, status=400)
+        
+        if not dataset.dataset_files.filter(pk=file_id).exists():
+            return Response({"error": "file does not exist in dataset"}, status=400)
+        
+        file = DatasetFiles.objects.get(pk=file_id)
+        file.is_deleted = True
+        file.save()
+
+        return Response({"message": "file deleted successfully"}, status=200)
+    
+
+        
 
 
 
@@ -350,6 +376,12 @@ class DatasetViewsView(APIView):
         
         dataset.views += 1
         dataset.save()
+
+        category = Categories.objects.get(pk=dataset.category.pk)
+        category.count += 1
+        category.save()
+
+        CategoryAnalysis.objects.create(category=dataset.category, count=1, attribute='view')
 
         return Response({"message": "dataset views updated"}, status=200)
 
@@ -628,6 +660,13 @@ class DatasetDownloadCount(APIView):
         files.download_count += 1
         files.save()
 
+        category = Categories.objects.get(pk=files.dataset.category.pk)
+        category.count += 1
+        category.save()
+
+        CategoryAnalysis.objects.create(category=files.dataset.category, count=1, attribute='download')
+
+
         return Response({"message": "download count updated"}, status=200)
     
 
@@ -684,11 +723,6 @@ def request_to_join_organisation(request, pk):
 
         return Response({"message": "request sent successfully"}, status=200)
         
-
-
-
-
-
 
 
 class UserDashboardCounts(APIView):

@@ -31,6 +31,7 @@ urlpatterns = [
     path('admin/users/pk/<uuid:pk>/actions/<str:action>/', user_actions, name="admin_users_actions"),
     path('admin/organisation_requests/', AdminOrganisation_Requests.as_view(), name="admin_organisation_requests"),
     path('admin/organisation_requests/pk/<uuid:pk>/actions/<str:action>/', organisation_request_actions, name="admin_organisation_requests_actions"),
+    path('admin/average-category/chart/', AverageCategoryView.as_view(), name="admin_average_category_chart"),
 
 
 ]

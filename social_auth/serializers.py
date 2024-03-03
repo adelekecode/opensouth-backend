@@ -10,6 +10,7 @@ from config import settings
 
 
 class GoogleSocialAuthSerializer(serializers.Serializer):
+    
     auth_token = serializers.CharField()
 
     def validate_auth_token(self, auth_token):

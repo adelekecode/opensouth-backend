@@ -681,3 +681,54 @@ class AdminDashboardCounts(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+    
+
+class AverageCategoryView(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+
+        data = []
+
+        timeframe = request.GET.get('timeframe', None)
+
+        if timeframe is None:
+            return Response({"error": "timeframe is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+        category = Categories.objects.filter(is_deleted=False).order_by('-views')
+        category_analysis = CategoryAnalysis.objects.all()
+
+        if timeframe == "daily":
+ 
+            for cat in category:
+                data.append({
+                    "name": cat.name,
+                    "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='view').count()
+                })
+
+        if timeframe == "weekly":
+            for cat in category:
+                data.append({
+                    "name": cat.name,
+                    "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='view').count()
+                })
+
+        if timeframe == "monthly":
+            for cat in category:
+                data.append({
+                    "name": cat.name,
+                    "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='view').count()
+                })
+
+        else:
+            return Response({"error": "invalid timeframe"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        return Response(data, status=status.HTTP_200_OK)
+
+
+
+
