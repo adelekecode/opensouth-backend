@@ -378,7 +378,7 @@ class DatasetViewsView(APIView):
         dataset.save()
 
         category = Categories.objects.get(pk=dataset.category.pk)
-        category.count += 1
+        category.views += 1
         category.save()
 
         CategoryAnalysis.objects.create(category=dataset.category, count=1, attribute='view')
@@ -661,7 +661,7 @@ class DatasetDownloadCount(APIView):
         files.save()
 
         category = Categories.objects.get(pk=files.dataset.category.pk)
-        category.count += 1
+        category.downloads += 1
         category.save()
 
         CategoryAnalysis.objects.create(category=files.dataset.category, count=1, attribute='download')
