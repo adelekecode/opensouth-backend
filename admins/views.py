@@ -694,14 +694,14 @@ class AverageCategoryView(APIView):
 
         timeframe = request.GET.get('timeframe', None)
 
+        category = Categories.objects.filter(is_deleted=False).order_by('-views')
+        category_analysis = CategoryAnalysis.objects.all()
+
         if timeframe is None:
             return Response({"error": "timeframe is required"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        category = Categories.objects.filter(is_deleted=False).order_by('-views')
-        category_analysis = CategoryAnalysis.objects.all()
-
-        if timeframe == "daily":
+        elif timeframe == "daily":
  
             for cat in category:
                 data.append({
@@ -709,14 +709,14 @@ class AverageCategoryView(APIView):
                     "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='view').count()
                 })
 
-        if timeframe == "weekly":
+        elif timeframe == "weekly":
             for cat in category:
                 data.append({
                     "name": cat.name,
                     "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='view').count()
                 })
 
-        if timeframe == "monthly":
+        elif timeframe == "monthly":
             for cat in category:
                 data.append({
                     "name": cat.name,
@@ -743,14 +743,14 @@ class AverageDownloadView(APIView):
 
         timeframe = request.GET.get('timeframe', None)
 
+        category = Categories.objects.filter(is_deleted=False).order_by('-views')
+        category_analysis = CategoryAnalysis.objects.all()
+
         if timeframe is None:
             return Response({"error": "timeframe is required"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        category = Categories.objects.filter(is_deleted=False).order_by('-views')
-        category_analysis = CategoryAnalysis.objects.all()
-
-        if timeframe == "daily":
+        elif timeframe == "daily":
  
             for cat in category:
                 data.append({
@@ -758,14 +758,14 @@ class AverageDownloadView(APIView):
                     "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
                 })
 
-        if timeframe == "weekly":
+        elif timeframe == "weekly":
             for cat in category:
                 data.append({
                     "name": cat.name,
                     "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
                 })
 
-        if timeframe == "monthly":
+        elif timeframe == "monthly":
             for cat in category:
                 data.append({
                     "name": cat.name,
