@@ -690,42 +690,36 @@ class AverageCategoryView(APIView):
 
     def get(self, request):
 
-        data = []
-
-        timeframe = request.GET.get('timeframe', None)
+        daily = []
+        weekly = []
+        monthly = []
 
         category = Categories.objects.filter(is_deleted=False).order_by('-views')
         category_analysis = CategoryAnalysis.objects.all()
-
-        if timeframe is None:
-            return Response({"error": "timeframe is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-
-        elif timeframe == "daily":
  
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='view').count()
-                })
+        for cat in category:
+            daily.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='view').count()
+            })
 
-        elif timeframe == "weekly":
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='view').count()
-                })
+        for cat in category:
+            weekly.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='view').count()
+            })
 
-        elif timeframe == "monthly":
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='view').count()
-                })
+        for cat in category:
+            monthly.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='view').count()
+            })
 
-        else:
-            return Response({"error": "invalid timeframe"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        data = {
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly
+        }
         
         return Response(data, status=status.HTTP_200_OK)
     
@@ -746,24 +740,23 @@ class AverageDownloadView(APIView):
         category = Categories.objects.filter(is_deleted=False).order_by('-views')
         category_analysis = CategoryAnalysis.objects.all()
         
-
  
         for cat in category:
             daily.append({
                 "name": cat.name,
-                "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
+                "downloads": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
             })
 
         for cat in category:
             weekly.append({
                 "name": cat.name,
-                "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
+                "downloads": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
             })
 
         for cat in category:
             monthly.append({
                 "name": cat.name,
-                "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
+                "downloads": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
             })
         
 
