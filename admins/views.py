@@ -745,35 +745,28 @@ class AverageDownloadView(APIView):
 
         category = Categories.objects.filter(is_deleted=False).order_by('-views')
         category_analysis = CategoryAnalysis.objects.all()
-
-        if timeframe is None:
-            return Response({"error": "timeframe is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-
-        elif timeframe == "daily":
  
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
-                })
+        for cat in category:
+            data.append({
+                "timeframe": "daily",
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
+            })
 
-        elif timeframe == "weekly":
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
-                })
+        for cat in category:
+            data.append({
+                "timeframe": "weekly",
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
+            })
 
-        elif timeframe == "monthly":
-            for cat in category:
-                data.append({
-                    "name": cat.name,
-                    "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
-                })
-
-        else:
-            return Response({"error": "invalid timeframe"}, status=status.HTTP_400_BAD_REQUEST)
+        for cat in category:
+            data.append({
+                "timeframe": "monthly",
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
+            })
         
         
         return Response(data, status=status.HTTP_200_OK)
