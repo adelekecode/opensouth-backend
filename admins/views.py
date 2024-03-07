@@ -739,34 +739,38 @@ class AverageDownloadView(APIView):
 
     def get(self, request):
 
-        data = []
-
-        timeframe = request.GET.get('timeframe', None)
+        daily = []
+        weekly = []
+        monthly = []
 
         category = Categories.objects.filter(is_deleted=False).order_by('-views')
         category_analysis = CategoryAnalysis.objects.all()
         
+
  
         for cat in category:
-            data.append({
-                "timeframe": "daily",
+            daily.append({
                 "name": cat.name,
                 "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
             })
 
         for cat in category:
-            data.append({
-                "timeframe": "weekly",
+            weekly.append({
                 "name": cat.name,
                 "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
             })
 
         for cat in category:
-            data.append({
-                "timeframe": "monthly",
+            monthly.append({
                 "name": cat.name,
                 "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
             })
         
+
+        data = {
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly
+        }
         
         return Response(data, status=status.HTTP_200_OK)
