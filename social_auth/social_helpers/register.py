@@ -11,20 +11,15 @@ def split_name(name):
     return first_name.title(), last_name.title()
 
 
-def register_social_user(provider, user_id,email, name):
+def register_social_user(provider, email, name):
     """Allows user to login even if they didn't initially signup with google. """
     
     filtered_user_by_email = User.objects.filter(email=email, is_deleted=False, is_active=True)
 
     if filtered_user_by_email.exists():
-        if provider == filtered_user_by_email[0].provider:
 
-            registered_user = authenticate(
-                email=email, password=os.getenv('SOCIAL_SECRET'))
-        
-        else:
-            registered_user = filtered_user_by_email[0]
-            
+        registered_user = authenticate(
+            email=email, password=os.getenv('SOCIAL_SECRET'))
             
         refresh = RefreshToken.for_user(registered_user)
         return {
@@ -35,7 +30,7 @@ def register_social_user(provider, user_id,email, name):
             'role':registered_user.role,
             'is_admin':registered_user.is_admin,
             'is_superuser' : registered_user.is_superuser,
-            # "provider":provider,
+            "provider":provider,
             'refresh': str(refresh),
             'access' : str(refresh.access_token)
         }
@@ -73,7 +68,7 @@ def register_social_user(provider, user_id,email, name):
                 'role':user.role,
                 'is_admin':user.is_admin,
                 'is_superuser' : user.is_superuser,
-                # "provider":provider,
+                "provider":provider,
                 'refresh': str(refresh),
                 'access' : str(refresh.access_token)
             }
