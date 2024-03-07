@@ -17,9 +17,14 @@ def register_social_user(provider, email, name):
     filtered_user_by_email = User.objects.filter(email=email, is_deleted=False, is_active=True)
 
     if filtered_user_by_email.exists():
+        if provider == filtered_user_by_email[0].provider:
 
-        registered_user = authenticate(
-            email=email, password=os.getenv('SOCIAL_SECRET'))
+            registered_user = authenticate(
+                email=email, password=os.getenv('SOCIAL_SECRET'))
+        
+        else:
+            registered_user = filtered_user_by_email[0]
+        
             
         refresh = RefreshToken.for_user(registered_user)
         return {

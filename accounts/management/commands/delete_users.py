@@ -8,8 +8,17 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+
+        email = input(">>>>")
+
+        if User.objects.filter(email=email).exists():
+            self.stdout.write(self.style.ERROR("User aexists"))
+
+            user = User.objects.get(email=email)
+            user.delete_permanently()
+
+            self.stdout.write(self.style.SUCCESS("Successfully deleted user"))
     
         
-        User.objects.filter(is_admin=False, is_staff=False).delete()
-        
-        self.stdout.write(self.style.SUCCESS("Successfully deleted users"))
+        else:
+            self.stdout.write(self.style.ERROR("User does not exist"))
