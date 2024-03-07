@@ -112,12 +112,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         
         return None
     
-               
-            
-
-           
-
-    
     def delete(self):
         
         """

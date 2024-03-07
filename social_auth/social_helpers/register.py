@@ -39,10 +39,16 @@ def register_social_user(provider, email, name):
         
 
     else:
-        first_name, last_name = split_name(name)
+        check_name = name.split(" ")
+        if len(check_name) > 1:
+            first_name, last_name = split_name(name)
+        else:
+            first_name = name
+            last_name = ""
+       
         user = {
-            'first_name': first_name, 
-            'last_name' :last_name,
+            'first_name': first_name,
+            'last_name' : last_name,
             'email': email,
             'role': 'user',
             'password': os.getenv('SOCIAL_SECRET')}
