@@ -49,7 +49,6 @@ def register_social_user(provider, user_id,email, name):
             'first_name': first_name, 
             'last_name' :last_name,
             'email': email,
-            'phone':None,
             'role': 'user',
             'password': os.getenv('SOCIAL_SECRET')}
         
