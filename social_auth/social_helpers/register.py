@@ -33,10 +33,9 @@ def register_social_user(provider, user_id,email, name):
             'last_name':registered_user.last_name,
             'email': registered_user.email,
             'role':registered_user.role,
-            "phone":registered_user.phone,
             'is_admin':registered_user.is_admin,
             'is_superuser' : registered_user.is_superuser,
-            "provider":provider,
+            # "provider":provider,
             'refresh': str(refresh),
             'access' : str(refresh.access_token)
         }
@@ -73,10 +72,9 @@ def register_social_user(provider, user_id,email, name):
                 'last_name':user.last_name,
                 'email': user.email,
                 'role':user.role,
-                "phone" : user.phone,
                 'is_admin':user.is_admin,
                 'is_superuser' : user.is_superuser,
-                "provider":provider,
+                # "provider":provider,
                 'refresh': str(refresh),
                 'access' : str(refresh.access_token)
             }
