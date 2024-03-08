@@ -694,7 +694,7 @@ class AverageCategoryView(APIView):
         weekly = []
         monthly = []
 
-        category = Categories.objects.filter(is_deleted=False).order_by('-views')
+        category = Categories.objects.filter(is_deleted=False).order_by('-views')[:6]
         category_analysis = CategoryAnalysis.objects.all()
  
         for cat in category:
@@ -737,7 +737,7 @@ class AverageDownloadView(APIView):
         weekly = []
         monthly = []
 
-        category = Categories.objects.filter(is_deleted=False).order_by('-views')
+        category = Categories.objects.filter(is_deleted=False).order_by('-downloads')[:6]
         category_analysis = CategoryAnalysis.objects.all()
         
  
