@@ -317,4 +317,34 @@ class PublicSupportSystem(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
+
+
+class PublicLocationRequest(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    def post(self, request):
+
+        country = request.data.get('location', None)
+        if country is None:
+            raise ValidationError("location is required")
+        
+        slug = slugify(country)
+        
+        if LocationAnalysis.objects.filter(slug=slug).exists():
+
+            location = LocationAnalysis.objects.get(slug=slug)
+            location.count += 1
+            location.save()
+
+            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        
+        else:
+            location = LocationAnalysis.objects.create(country=country)
+            location.count += 1
+            location.save()
+
+            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        

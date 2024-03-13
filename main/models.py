@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 from django.db import models
 from django.contrib.auth import get_user_model
 import uuid 
@@ -318,7 +318,6 @@ class DatasetFiles(models.Model):
 
     def save(self, *args, **kwargs):
         self.sha256 = hashlib.sha256(self.file.read()).hexdigest()
-        
         super(DatasetFiles, self).save(*args, **kwargs)
 
     @property
@@ -405,10 +404,8 @@ class News(models.Model):
 
 
     def save(self, *args, **kwargs):
-            
-            self.slug = slugify(self.title)
-    
-            super(News, self).save(*args, **kwargs)
+        self.slug = slugify(self.title)
+        super(News, self).save(*args, **kwargs)
 
 
     def __str__(self):
@@ -496,5 +493,26 @@ class CategoryAnalysis(models.Model):
 
     def __str__(self):
         return f"{self.category.name} -- {self.attribute} -- {self.count}"
+    
+
+
+
+class LocationAnalysis(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    country = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
+    count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.country)
+        super(LocationAnalysis, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.country} -- count- {self.count}"
     
 

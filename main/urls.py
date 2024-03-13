@@ -1,5 +1,6 @@
 from django.urls import path, include
 from .views import *
+from . import views
 
 
 
@@ -31,5 +32,6 @@ urlpatterns = [
     path('organisations/resend-pin/<uuid:pk>/', resend_pin, name="resend_pin"),
     path('user/dashboard/counts/', UserDashboardCounts.as_view(), name="user_dashboard_counts"),
     path('user/request-to-join-organisation/<uuid:pk>/', request_to_join_organisation, name="request_to_join_organisation"),
+    path("dashboard/most-accessed-data/", views.MostAccesseDataPerCategory.as_view(), name="most_accessed_datasets"),
 
 ]

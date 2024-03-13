@@ -750,3 +750,22 @@ class UserDashboardCounts(APIView):
         }
 
         return Response(data, status=200)
+
+
+class MostAccesseDataPerCategory(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = []
+        categories = CategoryAnalysis.objects.filter(attribute='view').order_by('-count')[:5]
+        for category in categories:
+            data_list = {
+                "name": category.category.name,
+                "count": category.count
+            }
+
+            data.append(data_list)
+
+        return Response(data, status=200)

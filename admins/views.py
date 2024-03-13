@@ -766,4 +766,5 @@ class AverageDownloadView(APIView):
             "monthly": monthly
         }
         
+        
         return Response(data, status=status.HTTP_200_OK)
