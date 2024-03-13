@@ -137,3 +137,11 @@ class SupportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Support
         fields = "__all__"
+
+
+
+class LocationAnalysisSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LocationAnalysis
+        fields = "__all__"

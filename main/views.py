@@ -769,3 +769,27 @@ class MostAccesseDataPerCategory(APIView):
             data.append(data_list)
 
         return Response(data, status=200)
+    
+
+class LocationAnalysisView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        locations = LocationAnalysis.objects.all()
+        top_locations = LocationAnalysis.objects.all().order_by('-count')[:5]
+
+        count = locations.exclude(pk__in=top_locations).aaggregate(count=Sum('count'))['count']
+
+
+        data = {
+            "top_locations": LocationAnalysisSerializer(top_locations, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+    
+    
+
+
