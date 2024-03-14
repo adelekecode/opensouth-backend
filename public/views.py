@@ -327,9 +327,10 @@ class PublicLocationRequest(APIView):
 
     def post(self, request):
 
-        country = request.data.get('location', None)
+        country = request.data.get('country', None)
+
         if country is None:
-            raise ValidationError("location is required")
+            raise ValidationError("country is required")
         
         slug = slugify(country)
         
