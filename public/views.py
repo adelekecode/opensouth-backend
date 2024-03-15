@@ -327,7 +327,7 @@ class PublicLocationRequest(APIView):
 
     def post(self, request):
 
-        country = request.data.get('country', None)
+        country = request.GET.get('country', None)
 
         if country is None:
             raise ValidationError("country is required")
