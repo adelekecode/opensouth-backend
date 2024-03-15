@@ -771,13 +771,21 @@ class MostAccesseDataPerCategory(APIView):
         return Response(data, status=200)
     
 
-class LocationAnalysisView(APIView):
+class UserLocationAnalysisView(APIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         locations = LocationAnalysis.objects.all()
+
+        datasets = Datasets.objects.filter(user=request.user, type="individual")
+
+        for dataset in datasets:
+            dataset_location = LocationAnalysis.objects.get(dataset=dataset)
+        
+        
+
         top_locations = LocationAnalysis.objects.all().order_by('-count')[:5]
 
         count = locations.exclude(pk__in=top_locations).aaggregate(count=Sum('count'))['count']
@@ -790,6 +798,6 @@ class LocationAnalysisView(APIView):
 
         return Response(data, status=200)
     
-    
+
 
 

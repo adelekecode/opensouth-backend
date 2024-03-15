@@ -33,5 +33,5 @@ urlpatterns = [
     path('user/dashboard/counts/', UserDashboardCounts.as_view(), name="user_dashboard_counts"),
     path('user/request-to-join-organisation/<uuid:pk>/', request_to_join_organisation, name="request_to_join_organisation"),
     path('dashboard/most-accessed-data/', views.MostAccesseDataPerCategory.as_view(), name="most_accessed_datasets"),
-    path('admin/location/analysis/', views.LocationAnalysisView.as_view(), name="admin_location_analysis"),
+    path('user/location/analysis/', views.UserLocationAnalysisView.as_view(), name="user_location_analysis"),
 ]

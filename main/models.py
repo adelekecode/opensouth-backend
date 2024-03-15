@@ -500,6 +500,7 @@ class CategoryAnalysis(models.Model):
 class LocationAnalysis(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, null=True, related_name="location_analysis")
     country = models.CharField(max_length=650)
     slug = models.SlugField(max_length=650, null=True)
     count = models.IntegerField(default=0)

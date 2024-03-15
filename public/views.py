@@ -325,25 +325,29 @@ class PublicLocationRequest(APIView):
 
     permission_classes = [PublicPermissions]
 
-    def post(self, request):
+    def post(self, request, pk):
 
         country = request.GET.get('country', None)
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if country is None:
             raise ValidationError("country is required")
         
         slug = slugify(country)
         
-        if LocationAnalysis.objects.filter(slug=slug).exists():
+        if LocationAnalysis.objects.filter(slug=slug, dataset=dataset).exists():
 
-            location = LocationAnalysis.objects.get(slug=slug)
+            location = LocationAnalysis.objects.get(slug=slug, dataset=dataset)
             location.count += 1
             location.save()
 
             return Response({"message": "location updated"}, status=status.HTTP_200_OK)
         
         else:
-            location = LocationAnalysis.objects.create(country=country)
+            location = LocationAnalysis.objects.create(country=country, dataset=dataset)
             location.count += 1
             location.save()
 
