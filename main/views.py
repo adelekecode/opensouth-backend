@@ -777,22 +777,57 @@ class UserLocationAnalysisView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        locations = LocationAnalysis.objects.all()
 
-        datasets = Datasets.objects.filter(user=request.user, type="individual")
+        locations = LocationAnalysis.objects.filter(dataset__user=request.user).order_by('-count')[:5]
 
-        for dataset in datasets:
-            dataset_location = LocationAnalysis.objects.get(dataset=dataset)
-        
-        
-
-        top_locations = LocationAnalysis.objects.all().order_by('-count')[:5]
-
-        count = locations.exclude(pk__in=top_locations).aaggregate(count=Sum('count'))['count']
-
+        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
 
         data = {
-            "top_locations": LocationAnalysisSerializer(top_locations, many=True).data,
+            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+
+
+
+class OrganisationLocationAnalysis(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        locations = LocationAnalysis.objects.filter(dataset__organisation=organisation).order_by('-count')[:5]
+        
+        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
+        
+        data = {
+            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+
+
+class AdminLocationAnalysis(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+
+        locations = LocationAnalysis.objects.all().order_by('-count')[:5]
+
+        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
+
+        data = {
+            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
             "others": count
         }
 

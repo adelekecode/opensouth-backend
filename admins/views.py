@@ -215,11 +215,16 @@ Please contact the administrator for more information.
 
             dataset.status = "published"
             dataset.save()
+
             message = f"""
 Your dataset {str(dataset.title).capitalize()} has been published successfully.
 
 """
             dataset_actions_mail(user=dataset.user, action="published", message=message)
+
+            if dataset.organisation:
+                dataset.organisation.dataset_count += 1
+                dataset.organisation.save()
 
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
@@ -767,4 +772,19 @@ class AverageDownloadView(APIView):
         }
         
         
+        return Response(data, status=status.HTTP_200_OK)
+    
+
+class AdminMostPublishedOrganisation(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+
+    def get(self, request):
+
+        organisation = Organisations.objects.filter(is_deleted=False, status='approvevd').order_by('-dataset_count')[:5]
+
+        data = OrganisationSerializer(organisation, many=True).data
+
         return Response(data, status=status.HTTP_200_OK)

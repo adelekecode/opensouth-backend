@@ -73,6 +73,7 @@ class Organisations(models.Model):
     logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="organisation_user")
+    dataset_count = models.IntegerField(default=0)
     status = models.CharField(max_length=250, default="pending", choices=(("pending", "pending"), ("approved", "approved"), ("rejected", "rejected")))
     type = models.CharField(max_length=250, default="null", choices=(("cooperate_organisation", "cooperate_organisation"), ("cooperate_society", "cooperate_society")))
     email = models.EmailField(null=True)
