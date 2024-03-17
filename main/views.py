@@ -758,15 +758,10 @@ class MostAccesseDataPerCategory(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        data = []
-        categories = CategoryAnalysis.objects.filter(attribute='view').order_by('-count')[:5]
-        for category in categories:
-            data_list = {
-                "name": category.category.name,
-                "count": category.count
-            }
 
-            data.append(data_list)
+        dataset = Datasets.objects.filter(is_deleted=False).order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+        
 
         return Response(data, status=200)
     
