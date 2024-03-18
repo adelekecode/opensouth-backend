@@ -773,9 +773,11 @@ class UserLocationAnalysisView(APIView):
 
     def get(self, request):
 
-        locations = LocationAnalysis.objects.filter(dataset__user=request.user).order_by('-count')[:5]
+        locations = LocationAnalysis.objects.filter(dataset__user=request.user)
 
-        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
+        top_5 = locations.order_by('-count')[:5]
+
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
 
         data = {
             "top_locations": LocationAnalysisSerializer(locations, many=True).data,
@@ -798,9 +800,11 @@ class OrganisationLocationAnalysis(APIView):
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=404)
         
-        locations = LocationAnalysis.objects.filter(dataset__organisation=organisation).order_by('-count')[:5]
+        locations = LocationAnalysis.objects.filter(dataset__organisation=organisation)
+
+        top_5 = locations.order_by('-count')[:5]
         
-        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
         
         data = {
             "top_locations": LocationAnalysisSerializer(locations, many=True).data,
