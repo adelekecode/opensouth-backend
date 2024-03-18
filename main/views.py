@@ -817,12 +817,16 @@ class AdminLocationAnalysis(APIView):
 
     def get(self, request):
 
-        locations = LocationAnalysis.objects.all().order_by('-count')[:5]
+        locations = LocationAnalysis.objects.all()
 
-        count = locations.exclude(pk__in=locations).aaggregate(count=Sum('count'))['count']
+        top_5 = locations.order_by('-count')[:5]
+
+
+
+        count = locations.exclude(pk__in=top_5).aaggregate(count=Sum('count'))['count']
 
         data = {
-            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "top_locations": LocationAnalysisSerializer(top_5, many=True).data,
             "others": count
         }
 
