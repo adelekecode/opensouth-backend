@@ -823,7 +823,7 @@ class AdminLocationAnalysis(APIView):
 
 
 
-        count = locations.exclude(pk__in=top_5).aaggregate(count=Sum('count'))['count']
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
 
         data = {
             "top_locations": LocationAnalysisSerializer(top_5, many=True).data,
