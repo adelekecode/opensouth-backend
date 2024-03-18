@@ -783,7 +783,7 @@ class AdminMostPublishedOrganisation(APIView):
 
     def get(self, request):
 
-        organisation = Organisations.objects.filter(is_deleted=False, status='approvevd').order_by('-dataset_count')[:5]
+        organisation = Organisations.objects.filter(is_deleted=False, status='approved').order_by('-dataset_count')[:5]
 
         data = OrganisationSerializer(organisation, many=True).data
 
