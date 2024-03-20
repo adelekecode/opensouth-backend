@@ -752,10 +752,10 @@ class UserDashboardCounts(APIView):
         return Response(data, status=200)
 
 
-class MostAccesseDataPerCategory(APIView):
+class AdminMostAccesseData(APIView):
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdmin]
 
     def get(self, request):
 
@@ -764,6 +764,43 @@ class MostAccesseDataPerCategory(APIView):
         
 
         return Response(data, status=200)
+    
+
+class UserMostAccessedData(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+    def get(self, request):
+
+        user = request.user
+
+        dataset = Datasets.objects.filter(user=user, is_deleted=False, type='individual').order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+
+        return Response(data, status=200)
+    
+
+class OrganisationMostAccessedData(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        dataset = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+
+        return Response(data, status=200)
+
+
+
+
     
 
 class UserLocationAnalysisView(APIView):
