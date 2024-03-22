@@ -28,7 +28,7 @@ RUN pip install --upgrade pip && \
 
 
 # expose ports
-EXPOSE 8000
+EXPOSE 8080
 
 
 # Use the gunicorn_config.py as the Gunicorn configuration file
