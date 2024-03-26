@@ -349,7 +349,6 @@ if os.getenv("ENVIRONMENT") == "production":
         }
     }
     
-    
 
 
 if os.getenv("ENVIRONMENT") == "development":
