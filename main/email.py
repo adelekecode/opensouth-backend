@@ -1,8 +1,9 @@
 import requests
 import os
+from config.send_mail import send_email
 
 
-key = os.getenv("email_key")
+
 
 
 
@@ -18,21 +19,8 @@ key = os.getenv("email_key")
    
 def organisation_add_users(user, organisation):
 
-    requests.post(
-
-        url="https://api.useplunk.com/v1/send",
-
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-
-        },
-
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Invitation",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+    message = f"""
+ <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
 
 <p>You have been invited  into the organisation {str(organisation.name).capitalize()} to become a colaborator.</p>
 
@@ -41,33 +29,20 @@ please don't hesitate to reach out to our friendly support team at support@opens
 
 <p>Best regards,</p>
 <p>Open South.</p> 
-</body> </html>
-            """
-        }
+
+"""
+
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Invitation",
+        body=message
     )
-    
-
-
-
 
    
 def organisation_delete_users(user, organisation):
 
-    requests.post(
-
-        url="https://api.useplunk.com/v1/send",
-
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-
-        },
-
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Removal",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+    message = f"""
+ <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
 
 <p>You have been removed from the organisation {str(organisation.name).capitalize()}.</p>
 <p>If you think this was an error or unintended, feel free to reach out to our support team.</p>
@@ -78,28 +53,21 @@ please don't hesitate to reach out to our friendly support team at support@opens
 <p>Best regards,</p>
 <p>Open South.</p> 
 </body> </html>
-            """
-        }
+
+"""
+
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Removal",
+        body=message
     )
 
 
 def organisation_reject_users(user, organisation):
 
-    requests.post(
+    message = f"""
 
-        url="https://api.useplunk.com/v1/send",
-
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-
-        },
-
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Rejection",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+<html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
 
 <p>Your request to join the organisation {str(organisation.name).capitalize()} as been rejected.</p>
 <p>If you think this was an error or unintended, feel free to reach out to our support team.</p>
@@ -110,40 +78,40 @@ please don't hesitate to reach out to our friendly support team at support@opens
 <p>Best regards,</p>
 <p>Open South.</p> 
 </body> </html>
-            """
-        }
-    )
 
+"""
+
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Request Declined",
+        body=message
+    )
 
 
 def organisation_verification_email(email, user, organization, pin):
 
+    message = f"""
+<html>
+    <body>
+        <p>Dear {str(user.first_name).capitalize()},</p>
+
+        <p>A new organization, {str(organization.name).capitalize()}, has been created.</p>
+        <p>Please use the following verification pin to verify your ownership:</p>
+
+        <p>Verification Pin: {pin}</p>
+        <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
+        <p>Best regards,</p>
+        <p>Open South.</p>
+    </body>
+</html>
+
+
+"""
     
-    requests.post(
-        url="https://api.useplunk.com/v1/send",
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "to": email,
-            "subject": "Open South - Organization Verification",
-            "body": f"""
-            <html>
-                <body>
-                    <p>Dear {str(user.first_name).capitalize()},</p>
-
-                    <p>A new organization, {str(organization.name).capitalize()}, has been created.</p>
-                    <p>Please use the following verification pin to verify your ownership:</p>
-
-                    <p>Verification Pin: {pin}</p>
-                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
-                    <p>Best regards,</p>
-                    <p>Open South.</p>
-                </body>
-            </html>
-            """
-        }
+    send_email(
+        email=email,
+        subject="Open South - New Organisation Created",
+        body=message
     )
 
 
@@ -153,30 +121,25 @@ def organisation_verification_email(email, user, organization, pin):
 
 def dataset_created_mail(email, user, message):
 
+    message = f"""
+ <html>
+    <body>
+        <p>Dear {str(user.first_name).capitalize()},</p>
+
+        <p> {message}</p>
+
+        <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
+        <p>Best regards,</p>
+        <p>Open South.</p>
+    </body>
+</html>
+
+"""
     
-    requests.post(
-        url="https://api.useplunk.com/v1/send",
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "to": email,
-            "subject": "Open South - Dataset Created",
-            "body": f"""
-            <html>
-                <body>
-                    <p>Dear {str(user.first_name).capitalize()},</p>
-
-                    <p> {message}</p>
-
-                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
-                    <p>Best regards,</p>
-                    <p>Open South.</p>
-                </body>
-            </html>
-            """
-        }
+    send_email(
+        email=email,
+        subject="Open South - New Dataset Created",
+        body=message
     )
 
 
@@ -188,21 +151,8 @@ def dataset_created_mail(email, user, message):
    
 def public_support_mail(to, name, message, address):
 
-    requests.post(
-
-        url="https://api.useplunk.com/v1/send",
-
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-
-        },
-
-        json={
-            "to": to,
-            "subject": "Open South - Public Support",
-            "body": f"""
-            <html> <body> <p>Hello Admin,</p>
+    body = f"""
+ <html> <body> <p>Hello Admin,</p>
 
 <p>A new public support mail.</p>
 
@@ -217,7 +167,10 @@ def public_support_mail(to, name, message, address):
 <p>Open South.</p> 
 </body> 
 </html>
-            """
-        }
+"""
+    send_email(
+        email=to,
+        subject="Open South - New Public Support Mail",
+        body=body
     )
     
