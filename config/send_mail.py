@@ -8,9 +8,31 @@ session = boto3.Session(
     aws_secret_access_key=os.getenv("mail_secret_key")
 )
 
-def send_email(subject, body, recipient):
+def send_email(subject, body, recipient, html=None):
 
     ses_client = session.client('ses', region_name=os.getenv("region"))
+
+    message={
+
+            'Body': {
+                'Text': {
+                    'Charset': 'UTF-8',
+                    'Data': body,
+                    }
+                },
+
+            'Subject': {
+                'Charset': 'UTF-8',
+                'Data': subject,
+            }
+        }
+    
+    if html:
+        message['Body']['Html'] = {
+            'Charset': 'UTF-8',
+            'Data': html,
+        }
+
 
     response = ses_client.send_email(
 
@@ -18,21 +40,10 @@ def send_email(subject, body, recipient):
             'ToAddresses': [recipient],
         },
 
-        Message={
-            'Body': {
-                'Text': {
-                    'Charset': 'UTF-8',
-                    'Data': body,
-                },
-            },
-
-            'Subject': {
-                'Charset': 'UTF-8',
-                'Data': subject,
-            },
-        },
+        Message=message,
 
         Source=os.getenv("email_from")
     )
 
     return response['ResponseMetadata']['HTTPStatusCode'] == 200
+

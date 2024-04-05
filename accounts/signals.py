@@ -52,13 +52,13 @@ If you did not initiate this request, please contact our support team immediatel
 """   
        
         
-        email_from = os.getenv("email_from")
         recipient_list = [user.email]
-        # send_mail( subject, message, email_from, recipient_list)
+        html = render_to_string('email/activation.html', {'name': str(user.first_name).title(), 'code':code})
         send_email(
             subject=subject,
             body=message,
-            recipient=recipient_list[0]
+            recipient=recipient_list[0],
+            html=html
         )
         
         
@@ -74,11 +74,11 @@ def comfirmaion_email(user, request, *args,**kwargs):
     
     if user.role == "user":
         if user.is_active:
-            subject = "Open South - Account Activation"
+            subject = "Welcome to Open South"
         
             message = f"""
 
-Dear {{name}},
+Dear {str(user.first_name).title()},
 
 Welcome to the Open South open data platform
 
@@ -107,9 +107,14 @@ Open South.
 """   
        
         
-        email_from = os.getenv("email_from")
         recipient_list = [user.email]
-        send_mail( subject, message, email_from, recipient_list)
+        html = render_to_string('email/confirmation.html', {'name': str(user.first_name).title()})
+        send_email(
+            subject=subject,
+            body=message,
+            recipient=recipient_list[0],
+            html=html
+        )
         
         
         return
