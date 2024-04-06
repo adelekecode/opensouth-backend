@@ -208,3 +208,33 @@ Open South
         body=body
     )
     
+
+
+
+def login_mail(email, name):
+
+    message = f"""
+
+Dear {str(name).capitalize()},
+
+You just logged in to your Open South account. If this was you, you can safely ignore this email. If you think someone else might have accessed your account, please contact our support team immediately.
+
+If you have any questions or need assistance, please contact our support team at support@opensouth.io.
+
+
+"""
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': f"""You just logged in to your Open South account. If this was you, you can safely ignore this email. If you think someone else might have accessed your account, please contact our support team immediately.""",
+            'name' : str(name).title()
+
+        }
+    )
+    send_email(
+        email=email,
+        subject="Open South - Login",
+        body=message,
+        html=html
+        
+        )
