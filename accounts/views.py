@@ -17,7 +17,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.decorators import action
 from main.models import *
 from main.serializers import *
-from main.email import login_mail
+from .emails import login_mail
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from .models import ActivityLog
