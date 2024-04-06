@@ -93,7 +93,7 @@ If you have any questions or need assistance, please contact our support team at
         }
     )
     send_email(
-        email=email,
+        recipient=email,
         subject="Open South - Login",
         body=message,
         html=html

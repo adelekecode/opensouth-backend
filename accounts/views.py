@@ -218,7 +218,7 @@ def user_login(request):
                         'data' : user_detail,
                         }
 
-                        login_mail(user.email, user.first_name)
+                        login_mail(email=user.email, name=user.first_name)
              
                         return Response(data, status=status.HTTP_200_OK)
                     
