@@ -82,6 +82,9 @@ You just logged in to your Open South account. If this was you, you can safely i
 
 If you have any questions or need assistance, please contact our support team at support@opensouth.io.
 
+Best Regards,
+Open South.
+
 
 """
     html = render_to_string(
