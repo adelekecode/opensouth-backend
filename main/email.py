@@ -154,13 +154,14 @@ Verification Pin: {pin}
 
 def dataset_created_mail(email, user, message):
 
-    message = f"""
+    body = f"""
 
 Dear {str(user.first_name).capitalize()},
 
 {message}
 
 If you have any questions or need assistance, please contact our support team at support@opensouth.io.
+
 Best regards,
 Open South.
 
@@ -177,7 +178,7 @@ Open South.
     send_email(
         email=email,
         subject="Open South - New Dataset Created",
-        body=message,
+        body=body,
         html=html
     )
 

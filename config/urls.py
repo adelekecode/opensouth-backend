@@ -26,6 +26,7 @@ urlpatterns = [
     path('v1/', include('accounts.urls')),
     path('v1/', include('main.urls')),
     path('v1/', include('admins.urls')),
+    path('v1', include('api_portal.urls')),
     path('v1/', include('public.urls')),
 ]
 

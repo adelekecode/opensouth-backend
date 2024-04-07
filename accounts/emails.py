@@ -87,18 +87,18 @@ Open South.
 
 
 """
-    html = render_to_string(
-        'email/login.html',
-        {
-            'content': f"""You just logged in to your Open South account. If this was you, you can safely ignore this email. If you think someone else might have accessed your account, please contact our support team immediately.""",
-            'name' : str(name).title()
+    # html = render_to_string(
+    #     'email/test.html',
+    #     {
+    #         'content': f"""You just logged in to your Open South account. If this was you, you can safely ignore this email. If you think someone else might have accessed your account, please contact our support team immediately.""",
+    #         # 'name' : str(name).title()
 
-        }
-    )
+    #     }
+    # )
     send_email(
         recipient=email,
         subject="Open South - Login",
-        body=message,
-        html=html
+        body=message
+        # html=html
         
         )
