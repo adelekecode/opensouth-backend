@@ -332,8 +332,6 @@ class CreateDatasetFiles(APIView):
 
     def delete(self, request, pk):
 
-        serializer = DatasetFileSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
@@ -349,6 +347,9 @@ class CreateDatasetFiles(APIView):
         
         if not dataset.dataset_files.filter(pk=file_id).exists():
             return Response({"error": "file does not exist in dataset"}, status=400)
+
+        if request.user not in dataset.dataset_files.get(pk=file_id).user.all():
+            return Response({"error": "you are not authorised to delete this file"}, status=401)
         
         file = DatasetFiles.objects.get(pk=file_id)
         file.is_deleted = True
