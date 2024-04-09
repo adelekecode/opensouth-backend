@@ -33,7 +33,7 @@ Open South.
         }
     )
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Invitation",
         body=message,
         html=html
@@ -69,7 +69,7 @@ If you think this was an error or unintended, feel free to reach out to our supp
     )
 
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Removal",
         body=message,
         html=html
@@ -104,7 +104,7 @@ If you think this was an error or unintended, feel free to reach out to our supp
     )
 
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Request Declined",
         body=message,
         html=html
@@ -141,7 +141,7 @@ Verification Pin: {pin}
     )
     
     send_email(
-        email=email,
+        recipient=email,
         subject="Open South - New Organisation Created",
         body=message,
         html=html
@@ -176,7 +176,7 @@ Open South.
     )
     
     send_email(
-        email=email,
+        recipient=email,
         subject="Open South - New Dataset Created",
         body=body,
         html=html
@@ -204,7 +204,7 @@ Open South
 
 """
     send_email(
-        email=to,
+        recipient=to,
         subject="Open South - New Public Support Mail",
         body=body
     )
