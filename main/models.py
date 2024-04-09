@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 from django.db import models
 from django.contrib.auth import get_user_model
 import uuid 
@@ -20,6 +20,8 @@ class Categories(models.Model):
     name = models.CharField(max_length=650)
     image = models.ImageField(upload_to="category_images/", null=True)
     slug = models.SlugField(max_length=650, null=True)
+    views = models.IntegerField(default=0)
+    downloads = models.IntegerField(default=0)
     description = models.TextField(null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,6 +73,7 @@ class Organisations(models.Model):
     logo = models.ImageField(upload_to="organisation_logo/", null=True)
     users = models.ManyToManyField(User, related_name="organisations_users", blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="organisation_user")
+    dataset_count = models.IntegerField(default=0)
     status = models.CharField(max_length=250, default="pending", choices=(("pending", "pending"), ("approved", "approved"), ("rejected", "rejected")))
     type = models.CharField(max_length=250, default="null", choices=(("cooperate_organisation", "cooperate_organisation"), ("cooperate_society", "cooperate_society")))
     email = models.EmailField(null=True)
@@ -126,13 +129,13 @@ class Organisations(models.Model):
     @property
     def data_count(self):
         from .models import Datasets
-        return Datasets.objects.filter(organisation=self).count()
+        return Datasets.objects.filter(organisation=self, status='published').count()
     
     @property
     def downloads_count(self):
 
         from .models import DatasetFiles
-        files = DatasetFiles.objects.filter(dataset__organisation=self)
+        files = DatasetFiles.objects.filter(dataset__organisation=self, is_deleted=False)
         count = 0
         for file in files:
             count += file.download_count
@@ -142,12 +145,12 @@ class Organisations(models.Model):
     @property
     def views_count(self):
 
-        from .models import DatasetViews
-        views = DatasetViews.objects.filter(dataset__organisation=self)
+        from .models import Datasets
+        views = Datasets.objects.filter(organisation=self)
 
         count = 0
         for view in views:
-            count += view.count
+            count += view.views
 
         return count
 
@@ -184,6 +187,7 @@ class Datasets(models.Model):
     organisation = models.ForeignKey(Organisations, on_delete=models.CASCADE, null=True, related_name="organisation_datasets")
     status = models.CharField(max_length=650, choices=status_choices, default="pending")
     tags = models.ManyToManyField("Tags", related_name="dataset_tags", blank=True)
+    views = models.IntegerField(default=0)
     temporal_coverage = models.CharField(max_length=650)
     spatial_coverage = models.CharField(max_length=650, null=True)
     geojson = models.JSONField(null=True)
@@ -192,6 +196,7 @@ class Datasets(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+
         self.slug = slugify(self.title)
         if self.organisation:
             self.type = "organisation"
@@ -215,16 +220,6 @@ class Datasets(models.Model):
     def tags_data(self):
         return [model_to_dict(tag, fields=["name"]) for tag in self.tags.all()]
     
-    
-    @property
-    def views(self):
-        from .models import DatasetViews
-        data = DatasetViews.objects.filter(dataset=self)
-        if data:
-            view = data.first()
-            return model_to_dict(view, fields=["count", "created_at", "updated_at"])
-        
-        return 0
     
     @property
     def publisher_data(self):
@@ -253,7 +248,7 @@ class Datasets(models.Model):
     @property
     def files(self):
         from .models import DatasetFiles
-        files = DatasetFiles.objects.filter(dataset=self)
+        files = DatasetFiles.objects.filter(dataset=self, is_deleted=False)
         if files:
             list_data = []
             for file in files:
@@ -324,7 +319,6 @@ class DatasetFiles(models.Model):
 
     def save(self, *args, **kwargs):
         self.sha256 = hashlib.sha256(self.file.read()).hexdigest()
-        
         super(DatasetFiles, self).save(*args, **kwargs)
 
     @property
@@ -341,38 +335,6 @@ class DatasetFiles(models.Model):
     
 
 
-
-
-
-class DatasetViews(models.Model):
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dataset = models.OneToOneField(Datasets, on_delete=models.CASCADE, related_name="dataset_views")
-    count = models.IntegerField(default=0)
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-    def __str__(self):
-        return f"{self.dataset.title}"
-    
-    def delete(self):
-        self.is_deleted = True
-        self.save()
-    
-    @property
-    def dataset_data(self):
-        from .models import Datasets
-
-        data = Datasets.objects.get(pk=self.dataset.pk)
-
-        return {
-            "slug": data.slug,
-            "title": data.title,
-            "image": data.image_url if data.image else None,
-            "publisher_data": data.publisher_data
-        }
 
 
 
@@ -443,10 +405,8 @@ class News(models.Model):
 
 
     def save(self, *args, **kwargs):
-            
-            self.slug = slugify(self.title)
-    
-            super(News, self).save(*args, **kwargs)
+        self.slug = slugify(self.title)
+        super(News, self).save(*args, **kwargs)
 
 
     def __str__(self):
@@ -486,5 +446,75 @@ class OrganisationRequests(models.Model):
     def delete(self):
         self.is_deleted = True
         self.save()
+
+    @property
+    def user_data(self):
+        data = model_to_dict(self.user, fields=["id", "first_name", "last_name", "email", "role", "image_url"])
+        data["image_url"] = self.user.image_url
+        return data
+
+    @property
+    def organisation_data(self):
+        return model_to_dict(self.organisation, fields=["id", "name", "slug", "logo_url"])
+    
+
+
+
+
+
+class Support(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_support", null=True)
+    name = models.CharField(max_length=650)
+    email = models.EmailField(null=True)
+    type = models.CharField(max_length=250, null=True)
+    subject = models.CharField(max_length=650, null=True)
+    message = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+
+    def __str__(self):
+        return f"{self.name} -- {self.email}"
+    
+
+
+class CategoryAnalysis(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.ForeignKey(Categories, on_delete=models.CASCADE, related_name="category_analysis")
+    attribute = models.CharField(max_length=650)
+    count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f"{self.category.name} -- {self.attribute} -- {self.count}"
+    
+
+
+
+class LocationAnalysis(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dataset = models.ForeignKey(Datasets, on_delete=models.CASCADE, null=True, related_name="location_analysis")
+    country = models.CharField(max_length=650)
+    slug = models.SlugField(max_length=650, null=True)
+    count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.country)
+        super(LocationAnalysis, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.country} -- count- {self.count}"
     
 

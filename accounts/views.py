@@ -17,7 +17,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.decorators import action
 from main.models import *
 from main.serializers import *
-
+from .emails import login_mail
 from djoser.views import UserViewSet
 from rest_framework.views import APIView
 from .models import ActivityLog
@@ -217,6 +217,8 @@ def user_login(request):
                         "message":"success",
                         'data' : user_detail,
                         }
+
+                        login_mail(email=user.email, name=user.first_name)
              
                         return Response(data, status=status.HTTP_200_OK)
                     

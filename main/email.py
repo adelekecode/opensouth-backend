@@ -1,14 +1,7 @@
 import requests
 import os
-
-
-key = os.getenv("email_key")
-
-
-
-
-
-
+from config.send_mail import send_email
+from django.template.loader import render_to_string
 
 
 
@@ -18,132 +11,140 @@ key = os.getenv("email_key")
    
 def organisation_add_users(user, organisation):
 
-    requests.post(
+    message = f"""
 
-        url="https://api.useplunk.com/v1/send",
+Dear {str(user.first_name).title()},
 
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
+You have been invited  into the organisation {str(organisation.name).capitalize()} to become a colaborator.
 
-        },
+If you encounter any issues during the process or have any questions about our platform,
+please don't hesitate to reach out to our friendly support team at support@opensouth.io
 
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Invitation",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+Best regards,
+Open South.
 
-<p>You have been invited  into the organisation {str(organisation.name).capitalize()} to become a colaborator.</p>
+"""
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': f"You have been invited  into the organisation {str(organisation.name).capitalize()} to become a colaborator.",
+            'name' : str(user.first_name).title()
 
-<p>If you encounter any issues during the process or have any questions about our platform,
-please don't hesitate to reach out to our friendly support team at support@opensouth.io</p>
-
-<p>Best regards,</p>
-<p>Open South.</p> 
-</body> </html>
-            """
         }
     )
-    
-
-
-
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Invitation",
+        body=message,
+        html=html
+    )
 
    
 def organisation_delete_users(user, organisation):
 
-    requests.post(
+    message = f"""
 
-        url="https://api.useplunk.com/v1/send",
+Dear {str(user.first_name).capitalize()},
 
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
+You have been removed from the organisation {str(organisation.name).capitalize()}.
+If you think this was an error or unintended, feel free to reach out to our support team.
 
-        },
+If you encounter any issues during the process or have any questions about our platform,
+please don't hesitate to reach out to our friendly support team at support@opensouth.io
 
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Removal",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+Best regards,
+Open South. 
 
-<p>You have been removed from the organisation {str(organisation.name).capitalize()}.</p>
-<p>If you think this was an error or unintended, feel free to reach out to our support team.</p>
+"""
 
-<p>If you encounter any issues during the process or have any questions about our platform,
-please don't hesitate to reach out to our friendly support team at support@opensouth.io</p>
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': f"""
+You have been removed from the organisation {str(organisation.name).capitalize()}.
+If you think this was an error or unintended, feel free to reach out to our support team""",
+            'name' : str(user.first_name).title()
 
-<p>Best regards,</p>
-<p>Open South.</p> 
-</body> </html>
-            """
         }
+    )
+
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Removal",
+        body=message,
+        html=html
     )
 
 
 def organisation_reject_users(user, organisation):
 
-    requests.post(
+    message = f"""
 
-        url="https://api.useplunk.com/v1/send",
+Dear {str(user.first_name).capitalize()},
 
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
+Your request to join the organisation {str(organisation.name).capitalize()} as been rejected.
+If you think this was an error or unintended, feel free to reach out to our support team.
 
-        },
+If you encounter any issues during the process or have any questions about our platform,
+please don't hesitate to reach out to our friendly support team at support@opensouth.io
 
-        json={
-            "to": user.email,
-            "subject": "Open South - Organisation Rejection",
-            "body": f"""
-            <html> <body> <p>Dear {str(user.first_name).capitalize()},</p>
+Best regards,
+Open South.
 
-<p>Your request to join the organisation {str(organisation.name).capitalize()} as been rejected.</p>
-<p>If you think this was an error or unintended, feel free to reach out to our support team.</p>
+"""
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': f"""
+Your request to join the organisation {str(organisation.name).capitalize()} as been rejected.
+If you think this was an error or unintended, feel free to reach out to our support team.""",
+            'name' : str(user.first_name).title()
 
-<p>If you encounter any issues during the process or have any questions about our platform,
-please don't hesitate to reach out to our friendly support team at support@opensouth.io</p>
-
-<p>Best regards,</p>
-<p>Open South.</p> 
-</body> </html>
-            """
         }
     )
 
+    send_email(
+        email=user.email,
+        subject="Open South - Organisation Request Declined",
+        body=message,
+        html=html
+    )
 
 
 def organisation_verification_email(email, user, organization, pin):
 
-    
-    requests.post(
-        url="https://api.useplunk.com/v1/send",
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "to": email,
-            "subject": "Open South - Organization Verification",
-            "body": f"""
-            <html>
-                <body>
-                    <p>Dear {str(user.first_name).capitalize()},</p>
+    message = f"""
 
-                    <p>A new organization, {str(organization.name).capitalize()}, has been created.</p>
-                    <p>Please use the following verification pin to verify your ownership:</p>
+Dear {str(user.first_name).capitalize()},
 
-                    <p>Verification Pin: {pin}</p>
-                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
-                    <p>Best regards,</p>
-                    <p>Open South.</p>
-                </body>
-            </html>
-            """
+A new organization, {str(organization.name).capitalize()}, has been created.
+Please use the following verification pin to verify your ownership:
+
+Verification Pin: {pin}
+If you have any questions or need assistance, please contact our support team at support@opensouth.io.
+Best regards,
+Open South.
+
+"""
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': f""" A new organization, {str(organization.name).capitalize()}, has been created.
+Please use the following verification pin to verify your ownership:
+
+Verification Pin: {pin}
+
+            """,
+            'name' : str(user.first_name).title()
+
         }
+    )
+    
+    send_email(
+        email=email,
+        subject="Open South - New Organisation Created",
+        body=message,
+        html=html
     )
 
 
@@ -153,35 +154,58 @@ def organisation_verification_email(email, user, organization, pin):
 
 def dataset_created_mail(email, user, message):
 
-    
-    requests.post(
-        url="https://api.useplunk.com/v1/send",
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "to": email,
-            "subject": "Open South - Dataset Created",
-            "body": f"""
-            <html>
-                <body>
-                    <p>Dear {str(user.first_name).capitalize()},</p>
+    message = f"""
 
-                    <p> {message}</p>
+Dear {str(user.first_name).capitalize()},
 
-                    <p>If you have any questions or need assistance, please contact our support team at support@opensouth.io.</p>
-                    <p>Best regards,</p>
-                    <p>Open South.</p>
-                </body>
-            </html>
-            """
+{message}
+
+If you have any questions or need assistance, please contact our support team at support@opensouth.io.
+Best regards,
+Open South.
+
+"""
+    html = render_to_string(
+        'email/dataset.html',
+        {
+            'content': message,
+            'name' : str(user.first_name).title()
+
         }
+    )
+    
+    send_email(
+        email=email,
+        subject="Open South - New Dataset Created",
+        body=message,
+        html=html
     )
 
 
 
+   
+def public_support_mail(to, name, message, address):
+
+    body = f"""
+Hello Admin
+
+A new public support mail.
+
+From: {str(name).capitalize()}
+
+Address: {str(address).capitalize()}
+
+Message: {str(message).capitalize()}
 
 
+Best regards
+Open South
 
+"""
+    send_email(
+        email=to,
+        subject="Open South - New Public Support Mail",
+        body=body
+    )
     
+

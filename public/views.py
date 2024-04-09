@@ -60,7 +60,36 @@ class PublicOrganisationView(generics.ListAPIView):
     permission_classes = [PublicPermissions]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False, status='approved').order_by('name')
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['name']
     pagination_class = LimitOffsetPagination
+
+
+    def list(self, request, *args, **kwargs):
+
+        sort = request.GET.get('sort', None)
+
+        
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if sort == 'relevance':
+            queryset = queryset.order_by('-views')
+
+        if sort == 'most_recent':
+            queryset = queryset.order_by('-created_at')
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+
 
 
 class PublicOrganisationDetailView(generics.RetrieveAPIView):
@@ -80,7 +109,7 @@ class PublicDatasetView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
-    search_fields = ['title', 'category__name', 'tags__name', 'organisation_name']
+    search_fields = ['title', 'category__name', 'tags__name', 'organisation__name']
 
 
     def list(self, request, *args, **kwargs):
@@ -92,19 +121,29 @@ class PublicDatasetView(generics.ListAPIView):
         end_date = request.GET.get('end_date', None)
         format = request.GET.get('format', None)
         spatial_coverage = request.GET.get('spatial_coverage', None)
+        sort = request.GET.get('sort', None)
         license = request.GET.get('license', None)
 
         
         queryset = self.filter_queryset(self.get_queryset())
 
+        if sort == 'relevance':
+            queryset = queryset.order_by('-views')
+
+        if sort == 'creation_date':
+            queryset = queryset.order_by('created_at')
+
+        if sort == 'last_update':
+            queryset = queryset.order_by('-updated_at')
+        
         if license:
             queryset = queryset.filter(license=license)
 
         if category:
-            queryset = queryset.filter(category__name=category)
+            queryset = queryset.filter(category__slug=category)
 
         if organisation:
-            queryset = queryset.filter(organisation__name=organisation)
+            queryset = queryset.filter(organisation__slug=organisation)
 
         if tags:
             queryset = queryset.filter(tags__name=tags)
@@ -140,7 +179,8 @@ class PublicDatasetDetailView(generics.RetrieveAPIView):
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
 
-        
+
+
 
 
 
@@ -164,15 +204,14 @@ class PublicCounts(APIView):
 
 
 
-
 class PopularDataset(APIView):
 
     permission_classes = [PublicPermissions]
 
     def get(self, request):
 
-        views = DatasetViews.objects.all().order_by('-count')[:9]
-        serializer = DatasetViewsSerializer(views, many=True)
+        views = Datasets.objects.filter(is_deleted=False).order_by('-views')[:9]
+        serializer = DatasetSerializer(views, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
@@ -203,13 +242,8 @@ class PublicTagsView(generics.ListAPIView):
     serializer_class = TagsSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    queryset = Tags.objects.filter(is_deleted=False)
+    queryset = Tags.objects.filter(is_deleted=False).order_by('name')
     search_fields = ('name', 'slug')
-
-
-
-
-
 
 
 
@@ -242,3 +276,80 @@ class PublicUserDataset(generics.ListAPIView):
         
         return Datasets.objects.filter(is_deleted=False, status='published', user=user, type='individual').order_by('-created_at')
 
+
+
+
+class PublicPopularOrganisationDataset(APIView):
+
+    permission_classes = [PublicPermissions]
+    authentication_classes = [JWTAuthentication]
+
+
+    def get(self, request, pk):
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        datasets = Datasets.objects.filter(is_deleted=False, status='published', organisation=organisation).order_by('-views')[:9]
+        serializer = DatasetSerializer(datasets, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+
+class PublicSupportSystem(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    @swagger_auto_schema(methods=['POST'], request_body=SupportSerializer())
+    @action(detail=False, methods=['POST'])
+    def post(self, request):
+
+        serializer = SupportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(
+            type = 'public',
+            subject = 'support'
+
+        )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+
+
+class PublicLocationRequest(APIView):
+
+    permission_classes = [PublicPermissions]
+
+    def post(self, request, pk):
+
+        country = request.GET.get('country', None)
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if country is None:
+            raise ValidationError("country is required")
+        
+        slug = slugify(country)
+        
+        if LocationAnalysis.objects.filter(slug=slug, dataset=dataset).exists():
+
+            location = LocationAnalysis.objects.get(slug=slug, dataset=dataset)
+            location.count += 1
+            location.save()
+
+            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        
+        else:
+            location = LocationAnalysis.objects.create(country=country, dataset=dataset)
+            location.count += 1
+            location.save()
+
+            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        

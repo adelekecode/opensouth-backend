@@ -59,9 +59,6 @@ class DatasetFileSerializer(serializers.ModelSerializer):
         model = DatasetFiles
         fields = "__all__"
 
-  
-        
-
 
 
 
@@ -75,23 +72,21 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DatasetViewsSerializer(serializers.ModelSerializer):
-
-    dataset_data = serializers.ReadOnlyField()
-    class Meta:
-        model = DatasetViews
-        fields = "__all__"
-
-
 
 class TagsSerializer(serializers.ModelSerializer):
 
-    # keywords = serializers.ListField(child=serializers.CharField(max_length=100), read_only=True)
+    keywords = serializers.ListField(child=serializers.CharField(max_length=5000), write_only=True, required=True)
     name = serializers.CharField(max_length=100, required=False)
+
+
+    extra_kwargs = {
+            'keywords': {'write_only': True},
+        }
+
 
     class Meta:
         model = Tags
-        fields = "__all__"
+        fields = ["id", "name", "slug", "is_deleted", "created_at", "updated_at", "keywords"]
 
 
 
@@ -128,9 +123,25 @@ class NewsSerializer(serializers.ModelSerializer):
 
 class OrganisationRequestSerializer(serializers.ModelSerializer):
 
-    # organisation_data = serializers.ReadOnlyField()
-    # user_data = serializers.ReadOnlyField()
+    organisation_data = serializers.ReadOnlyField()
+    user_data = serializers.ReadOnlyField()
 
     class Meta:
         model = OrganisationRequests
+        fields = "__all__"
+
+
+
+class SupportSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Support
+        fields = "__all__"
+
+
+
+class LocationAnalysisSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LocationAnalysis
         fields = "__all__"

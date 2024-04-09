@@ -9,7 +9,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from .email import *
+from django.db.models import Q, Sum
 from .helpers import *
+from datetime import datetime
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -168,7 +170,9 @@ class OrganisationUsers(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomUserSerializer
     pagination_class = LimitOffsetPagination
-    queryset = User.objects.filter(is_deleted=False)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['email', 'first_name', 'last_name']
+    queryset = User.objects.filter(is_deleted=False).order_by('-date_joined')
 
 
     def get_queryset(self):
@@ -179,23 +183,12 @@ class OrganisationUsers(generics.ListAPIView):
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=404)
+        
         users = organisation.users.all()
 
         return users
 
-    def list(self, request, *args, **kwargs):
-
-        queryset = self.get_queryset()
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = CustomUserSerializer(page, many=True)
-
-            return self.get_paginated_response(serializer.data)
-
-        serializer = CustomUserSerializer(queryset, many=True)
-
-        return Response(serializer.data)
+   
 
        
 
@@ -326,6 +319,8 @@ class CreateDatasetFiles(APIView):
             dataset = dataset,
 
         )
+
+
         serialized_ = DatasetFileSerializer(serializer.instance).data
 
         file_name = serialized_['file_url'].split('/')[-1].split('.')[0]
@@ -333,12 +328,36 @@ class CreateDatasetFiles(APIView):
         serializer.instance.save()
 
         return Response(DatasetFileSerializer(serializer.instance).data, status=200)
-        
-        
-       
-       
 
 
+    def delete(self, request, pk):
+
+        serializer = DatasetFileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset instance not found"}, status=400)
+        
+        file_id = request.GET.get('file_id', None)
+        
+        if not file_id:
+            return Response({"error": "url params file_id is required"}, status=400)
+        
+        if not DatasetFiles.objects.filter(pk=file_id).exists():
+            return Response({"error": "file does not exist"}, status=400)
+        
+        if not dataset.dataset_files.filter(pk=file_id).exists():
+            return Response({"error": "file does not exist in dataset"}, status=400)
+        
+        file = DatasetFiles.objects.get(pk=file_id)
+        file.is_deleted = True
+        file.save()
+
+        return Response({"message": "file deleted successfully"}, status=200)
+    
+
+        
 
 
 
@@ -346,7 +365,7 @@ class CreateDatasetFiles(APIView):
 class DatasetViewsView(APIView):
 
 
-    @swagger_auto_schema(methods=['POST'], request_body=DatasetViewsSerializer())
+    @swagger_auto_schema(methods=['POST'], request_body=DatasetSerializer())
     @action(detail=True, methods=['POST'])
     def post(self, request, pk):
 
@@ -355,21 +374,16 @@ class DatasetViewsView(APIView):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset instance not found"}, status=400)
         
-        dataset_view = DatasetViews.objects.filter(dataset=dataset)
+        dataset.views += 1
+        dataset.save()
 
-        if dataset_view.exists():
-            dataset_view = dataset_view.first()
-            dataset_view.count += 1
-            dataset_view.save()
-            
-            return Response({"message": "dataset view updated"}, status=200)
-        
-        else:
-            dataset_view = DatasetViews.objects.create(dataset=dataset)
-            dataset_view.count += 1
-            dataset_view.save()
+        category = Categories.objects.get(pk=dataset.category.pk)
+        category.views += 1
+        category.save()
 
-            return Response({"message": "dataset views updated"}, status=200)
+        CategoryAnalysis.objects.create(category=dataset.category, count=1, attribute='view')
+
+        return Response({"message": "dataset views updated"}, status=200)
 
         
 
@@ -383,14 +397,10 @@ class TagsView(APIView):
     @action(detail=True, methods=['POST'])
     def post(self, request, pk):
 
-        serializers = TagsSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
-
-        data = serializers.data
-        if 'keywords' not in data:
-            return Response({"error": " 'keywords' field is required"})
+        serializer = TagsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        keywords =  data['keywords']
+        keywords =  serializer.validated_data['keywords']
 
         try:
             dataset = Datasets.objects.get(pk=pk)
@@ -413,14 +423,10 @@ class TagsView(APIView):
 
     def delete(self, request, pk):
 
-        serializers = TagsSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
+        serializer = TagsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        data = serializers.data
-        if 'keywords' not in data:
-            return Response({"error": " 'keywords' field is required"})
-        
-        keywords =  data['keywords']
+        keywords =  serializer.validated_data['keywords']
 
         try:
             dataset = Datasets.objects.get(pk=pk)
@@ -454,6 +460,49 @@ class UserDataset(generics.ListAPIView):
     def get_queryset(self):
         return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
     
+    
+    def list(self, request, *args, **kwargs):
+
+       
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
+        status = request.GET.get('status', None)
+       
+        
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if status == 'pending':
+            queryset = queryset.filter(status='pending')
+        
+        if status == 'published':
+            queryset = queryset.filter(status='published')
+        
+        if status == 'unpublished':
+            queryset = queryset.filter(status='unpublished')
+
+        if status == 'rejected':
+            queryset = queryset.filter(status='rejected')
+        
+        if status == 'further_review':
+            queryset = queryset.filter(status='further_review')
+
+
+        if start_date and end_date:
+            Start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            End_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            queryset = queryset.filter(created_at__range=[Start_date, End_date])
+
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+    
 
 class UserDatasetFiles(generics.ListAPIView):
 
@@ -472,10 +521,8 @@ class UserDatasetFiles(generics.ListAPIView):
         except Datasets.DoesNotExist:
             return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        if self.request.user != dataset.user:
-            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
-        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset, user=self.request.user,).order_by('-created_at')
+        return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset).order_by('-created_at')
 
 
 
@@ -514,6 +561,8 @@ class UserOrganisationDatasets(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['title', 'organisation__name']
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -530,6 +579,75 @@ class UserOrganisationDatasets(generics.ListAPIView):
 
         return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
     
+    def list(self, request, *args, **kwargs):
+
+       
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
+        status = request.GET.get('status', None)
+       
+        
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if status == 'pending':
+            queryset = queryset.filter(status='pending')
+        
+        if status == 'published':
+            queryset = queryset.filter(status='published')
+        
+        if status == 'unpublished':
+            queryset = queryset.filter(status='unpublished')
+
+        if status == 'rejected':
+            queryset = queryset.filter(status='rejected')
+        
+        if status == 'further_review':
+            queryset = queryset.filter(status='further_review')
+
+
+        if start_date and end_date:
+
+            Start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            End_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+            queryset = queryset.filter(created_at__range=[Start_date, End_date])
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DatasetSerializer
+    queryset = Datasets.objects.filter(is_deleted=False)
+
+    lookup_field = 'pk'
+
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        org_pk = self.kwargs['org_pk']
+
+        try:
+            organisation = Organisations.objects.get(pk=org_pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        if self.request.user not in organisation.users.all():
+            return Response({"error": "you are not authorised to view this"}, status=401)
+
+        return Datasets.objects.filter(pk = pk, is_deleted=False)
+    
 
 
 class DatasetDownloadCount(APIView):
@@ -541,6 +659,13 @@ class DatasetDownloadCount(APIView):
 
         files.download_count += 1
         files.save()
+
+        category = Categories.objects.get(pk=files.dataset.category.pk)
+        category.downloads += 1
+        category.save()
+
+        CategoryAnalysis.objects.create(category=files.dataset.category, count=1, attribute='download')
+
 
         return Response({"message": "download count updated"}, status=200)
     
@@ -582,17 +707,172 @@ def request_to_join_organisation(request, pk):
         if organisation.status != "approved":
             return Response({"error": "request not sent"}, status=401)
         
-        OrganisationRequests.objects.create(
-            user=request.user,
-            organisation=organisation
-        )
         if request.user.role == 'admin':
             return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
         if request.user in organisation.users.all():
             return Response({"error": "you are already a member of this organisation"}, status=400)
         
+        if OrganisationRequests.objects.filter(user=request.user, organisation=organisation, status='pending').exists():
+            return Response({"error": "you have a pending request"}, status=400)
+        
+        OrganisationRequests.objects.create(
+            user=request.user,
+            organisation=organisation
+        )
 
         return Response({"message": "request sent successfully"}, status=200)
         
+
+
+class UserDashboardCounts(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+
+        datasets = Datasets.objects.filter(user=user, is_deleted=False, type='individual').count()
+        organisations = Organisations.objects.filter(users=user, is_deleted=False).count()
+        views = Datasets.objects.filter(user=user, is_deleted=False, type='individual').aggregate(views=Sum('views'))['views']
+        files = DatasetFiles.objects.filter(user=user, is_deleted=False).count()
+        downloads = DatasetFiles.objects.filter(user=user, is_deleted=False).aggregate(downloads=Sum('download_count'))['downloads']
         
+        
+        data = {
+            "datasets": datasets,
+            "organisations": organisations,
+            "views": views,
+            "files": files,
+            "downloads": downloads
+        }
+
+        return Response(data, status=200)
+
+
+class AdminMostAccesseData(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+
+        dataset = Datasets.objects.filter(is_deleted=False).order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+        
+
+        return Response(data, status=200)
+    
+
+class UserMostAccessedData(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+    def get(self, request):
+
+        user = request.user
+
+        dataset = Datasets.objects.filter(user=user, is_deleted=False, type='individual').order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+
+        return Response(data, status=200)
+    
+
+class OrganisationMostAccessedData(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        dataset = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-views')[:5]
+        data = DatasetSerializer(dataset, many=True).data
+
+        return Response(data, status=200)
+
+
+
+
+    
+
+class UserLocationAnalysisView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        locations = LocationAnalysis.objects.filter(dataset__user=request.user)
+
+        top_5 = locations.order_by('-count')[:5]
+
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
+
+        data = {
+            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+
+
+
+class OrganisationLocationAnalysis(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        try:
+            organisation = Organisations.objects.get(pk=pk)
+        except Organisations.DoesNotExist:
+            return Response({"error": "organisation does not exist"}, status=404)
+        
+        locations = LocationAnalysis.objects.filter(dataset__organisation=organisation)
+
+        top_5 = locations.order_by('-count')[:5]
+        
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
+        
+        data = {
+            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+
+
+class AdminLocationAnalysis(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+
+        locations = LocationAnalysis.objects.all()
+
+        top_5 = locations.order_by('-count')[:5]
+
+
+
+        count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
+
+        data = {
+            "top_locations": LocationAnalysisSerializer(top_5, many=True).data,
+            "others": count
+        }
+
+        return Response(data, status=200)
+    
+
+
+

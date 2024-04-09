@@ -11,7 +11,7 @@ def split_name(name):
     return first_name.title(), last_name.title()
 
 
-def register_social_user(provider, user_id,email, name):
+def register_social_user(provider, email, name):
     """Allows user to login even if they didn't initially signup with google. """
     
     filtered_user_by_email = User.objects.filter(email=email, is_deleted=False, is_active=True)
@@ -24,7 +24,7 @@ def register_social_user(provider, user_id,email, name):
         
         else:
             registered_user = filtered_user_by_email[0]
-            
+        
             
         refresh = RefreshToken.for_user(registered_user)
         return {
@@ -33,7 +33,6 @@ def register_social_user(provider, user_id,email, name):
             'last_name':registered_user.last_name,
             'email': registered_user.email,
             'role':registered_user.role,
-            "phone":registered_user.phone,
             'is_admin':registered_user.is_admin,
             'is_superuser' : registered_user.is_superuser,
             "provider":provider,
@@ -45,12 +44,17 @@ def register_social_user(provider, user_id,email, name):
         
 
     else:
-        first_name, last_name = split_name(name)
+        check_name = name.split(" ")
+        if len(check_name) > 1:
+            first_name, last_name = split_name(name)
+        else:
+            first_name = name
+            last_name = ""
+       
         user = {
-            'first_name': first_name, 
-            'last_name' :last_name,
+            'first_name': first_name,
+            'last_name' : last_name,
             'email': email,
-            'phone':None,
             'role': 'user',
             'password': os.getenv('SOCIAL_SECRET')}
         
@@ -73,7 +77,6 @@ def register_social_user(provider, user_id,email, name):
                 'last_name':user.last_name,
                 'email': user.email,
                 'role':user.role,
-                "phone" : user.phone,
                 'is_admin':user.is_admin,
                 'is_superuser' : user.is_superuser,
                 "provider":provider,

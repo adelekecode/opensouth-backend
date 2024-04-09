@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
+from rest_framework import filters
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
@@ -70,6 +71,24 @@ class AdminDatatsetView(generics.ListAPIView):
         serializer = DatasetSerializer(queryset, many=True)
 
         return Response(serializer.data)
+    
+
+class AdminDatasetDetails(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+    
+
+    def get(self, request, pk):
+        try:
+            dataset = Datasets.objects.get(pk=pk)
+        except Datasets.DoesNotExist:
+            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = DatasetSerializer(dataset)
+
+        return Response(serializer.data)
+
 
 
 
@@ -113,6 +132,7 @@ class AdminOrganisationView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         state = request.GET.get('status', None)
         verified = request.GET.get('verified', None)
+        active = request.GET.get('active', None)
 
         if state == "approved":
             queryset = queryset.filter(status="approved")
@@ -123,10 +143,10 @@ class AdminOrganisationView(generics.ListAPIView):
         if state == "pending":
             queryset = queryset.filter(status="pending")
 
-        if state == "blocked":
+        if active == "False":
             queryset = queryset.filter(is_active=False)
 
-        if state == "unblocked":
+        if active == "True":
             queryset = queryset.filter(is_active=True)
 
         if verified == "true":
@@ -195,11 +215,16 @@ Please contact the administrator for more information.
 
             dataset.status = "published"
             dataset.save()
+
             message = f"""
 Your dataset {str(dataset.title).capitalize()} has been published successfully.
 
 """
             dataset_actions_mail(user=dataset.user, action="published", message=message)
+
+            if dataset.organisation:
+                dataset.organisation.dataset_count += 1
+                dataset.organisation.save()
 
             return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
@@ -262,7 +287,7 @@ def organisation_actions(request, pk, action):
         except Datasets.DoesNotExist:
             return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        if action == "reject":
+        if action == "rejected":
 
             organisation.status = "rejected"
             organisation.save()
@@ -277,7 +302,7 @@ Your request to create an organisation has been rejected. Please contact the adm
             
             return Response({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
         
-        elif action == "approve":
+        elif action == "approved":
 
             organisation.status = "approved"
             organisation.is_active = True
@@ -349,11 +374,10 @@ def organisation_indicators(request):
         "approved": Organisations.objects.filter(is_deleted=False, status="approved").count(),
         "rejected": Organisations.objects.filter(is_deleted=False, status="rejected").count(),
         "pending": Organisations.objects.filter(is_deleted=False, status="pending").count()
-          
+
     }
         
         return Response(data, status=status.HTTP_200_OK)
-    
 
 
 
@@ -394,7 +418,7 @@ class AdminListNewsView(generics.ListAPIView):
     pagination_class  = LimitOffsetPagination
     serializer_class = NewsSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['title', 'status', 'slug']
+    search_fields = ['title']
     queryset = News.objects.filter(is_deleted=False).order_by('-created_at')
 
 
@@ -402,13 +426,16 @@ class AdminListNewsView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
 
         queryset = self.filter_queryset(self.get_queryset())
-        state = request.query_params.get('state', None)
+        state = request.query_params.get('status', None)
 
         if state == "published":
-            queryset = queryset.filter(is_published=True)
+            queryset = queryset.filter(status='published')
 
         if state == "unpublished":
-            queryset = queryset.filter(is_published=False)
+            queryset = queryset.filter(status='unpublished')
+
+        if state == "draft":
+            queryset = queryset.filter(status='draft')
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -608,7 +635,7 @@ class AdminUsers(generics.ListAPIView):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])
-def user_actions(request, pk):
+def user_actions(request, pk, action):
 
     if request.method == "POST":
 
@@ -617,7 +644,6 @@ def user_actions(request, pk):
         except User.DoesNotExist:
             return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        action = request.data.get('action', None)
 
         if action == "block":
 
@@ -643,3 +669,122 @@ def user_actions(request, pk):
         else:
             return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
+
+
+class AdminDashboardCounts(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+
+        data = {
+            "users": User.objects.filter(is_deleted=False).count(),
+            "organisations": Organisations.objects.filter(is_deleted=False).count(),
+            "datasets": Datasets.objects.filter(is_deleted=False).count(),
+            "news": News.objects.filter(is_deleted=False).count()
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
+
+class AverageCategoryView(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+
+        daily = []
+        weekly = []
+        monthly = []
+
+        category = Categories.objects.filter(is_deleted=False).order_by('-views')[:6]
+        category_analysis = CategoryAnalysis.objects.all()
+ 
+        for cat in category:
+            daily.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='view').count()
+            })
+
+        for cat in category:
+            weekly.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='view').count()
+            })
+
+        for cat in category:
+            monthly.append({
+                "name": cat.name,
+                "views": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='view').count()
+            })
+
+        data = {
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly
+        }
+        
+        return Response(data, status=status.HTTP_200_OK)
+    
+
+
+class AverageDownloadView(APIView):
+
+    permission_classes = [IsAdmin]
+    authentication_classes = [JWTAuthentication]
+
+
+    def get(self, request):
+
+        daily = []
+        weekly = []
+        monthly = []
+
+        category = Categories.objects.filter(is_deleted=False).order_by('-downloads')[:6]
+        category_analysis = CategoryAnalysis.objects.all()
+        
+ 
+        for cat in category:
+            daily.append({
+                "name": cat.name,
+                "downloads": category_analysis.filter(category=cat, created_at__day=timezone.now().day, attribute='download').count()
+            })
+
+        for cat in category:
+            weekly.append({
+                "name": cat.name,
+                "downloads": category_analysis.filter(category=cat, created_at__week=timezone.now().isocalendar()[1], attribute='download').count()
+            })
+
+        for cat in category:
+            monthly.append({
+                "name": cat.name,
+                "downloads": category_analysis.filter(category=cat, created_at__month=timezone.now().month, attribute='download').count()
+            })
+        
+
+        data = {
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly
+        }
+        
+        
+        return Response(data, status=status.HTTP_200_OK)
+    
+
+class AdminMostPublishedOrganisation(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+
+    def get(self, request):
+
+        organisation = Organisations.objects.filter(is_deleted=False, status='approved').order_by('-dataset_count')[:5]
+
+        data = OrganisationSerializer(organisation, many=True).data
+
+        return Response(data, status=status.HTTP_200_OK)

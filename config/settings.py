@@ -148,7 +148,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-##AWS S3 settings
+# ##AWS S3 settings
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_Access_Key")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_Secret_Access_Key")
@@ -159,7 +159,7 @@ AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_Storage_Bucket_Name")
 # AWS_CLOUDFRONT_KEY = str(os.getenv("AWS_Cloudfront_Private_Key").encode('utf-8').strip())
 # print(AWS_CLOUDFRONT_KEY)
 
-AWS_QUERYSTRING_EXPIRE = 180
+# AWS_QUERYSTRING_EXPIRE = 180
 
 
 # Default primary key field type
@@ -262,14 +262,6 @@ DOMAIN = ""
 #OAuth credentials
 GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
 
-
-
-
-
-
-#use any email backend 
-"""
-External SMTP server settings"""
 
 
 # Configure the logging settings
