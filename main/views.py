@@ -348,7 +348,7 @@ class CreateDatasetFiles(APIView):
         if not dataset.dataset_files.filter(pk=file_id).exists():
             return Response({"error": "file does not exist in dataset"}, status=400)
 
-        if request.user not in dataset.dataset_files.get(pk=file_id).user.all():
+        if request.user != dataset.dataset_files.get(pk=file_id).user:
             return Response({"error": "you are not authorised to delete this file"}, status=401)
         
         file = DatasetFiles.objects.get(pk=file_id)
