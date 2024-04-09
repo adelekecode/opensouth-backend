@@ -169,7 +169,7 @@ Open South.
     html = render_to_string(
         'email/dataset.html',
         {
-            'content': message,
+            'content': str(message),
             'name' : str(user.first_name).title()
 
         }
