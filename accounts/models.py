@@ -8,7 +8,7 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, FileExtensionValidator
 from django.forms import model_to_dict
-
+from django.db.models import Sum
 from .managers import UserManager
 import uuid
 import random
@@ -111,6 +111,31 @@ class User(AbstractBaseUser, PermissionsMixin):
             return data
         
         return None
+    
+    @property
+    def user_stats(self):
+        from main.models import Datasets
+
+        datasets = Datasets.objects.filter(user=self, type="individual", is_deleted=False)
+
+        data_count = datasets.count()
+        views = datasets.aggregate(views=Sum('views'))['views']
+        downloads = datasets.aggregate(downloads=Sum('download_count'))['downloads']
+
+        return {
+            "data_count": data_count,
+            "views": views,
+            "downloads": downloads
+        }
+
+
+
+
+
+
+
+
+
     
     def delete(self):
         
