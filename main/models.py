@@ -146,7 +146,7 @@ class Organisations(models.Model):
     def views_count(self):
 
         from .models import Datasets
-        views = Datasets.objects.filter(organisation=self)
+        views = Datasets.objects.filter(organisation=self, status='published', is_deleted=False)
 
         count = 0
         for view in views:
@@ -510,9 +510,9 @@ class LocationAnalysis(models.Model):
 
 
 
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.country)
-        super(LocationAnalysis, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.slug = slugify(self.country)
+    #     super(LocationAnalysis, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.country} -- count- {self.count}"

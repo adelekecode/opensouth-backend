@@ -347,7 +347,7 @@ class PublicLocationRequest(APIView):
             return Response({"message": "location updated"}, status=status.HTTP_200_OK)
         
         else:
-            location = LocationAnalysis.objects.create(country=country, dataset=dataset)
+            location = LocationAnalysis.objects.create(country=str(country).lower(), dataset=dataset, slug=slug)
             location.count += 1
             location.save()
 
