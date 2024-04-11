@@ -114,13 +114,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     @property
     def user_stats(self):
-        from main.models import Datasets
+        from main.models import Datasets, DatasetFiles
 
         datasets = Datasets.objects.filter(user=self, type="individual", is_deleted=False)
 
         data_count = datasets.count()
         views = datasets.aggregate(views=Sum('views'))['views']
-        downloads = datasets.aggregate(downloads=Sum('download_count'))['downloads']
+        downloads = DatasetFiles.objects.filter(dataset__organisation__users=self, is_deleted=False).aggregate(downloads=Sum('download_count'))['downloads']
+
 
         return {
             "data_count": data_count,
