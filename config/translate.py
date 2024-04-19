@@ -48,6 +48,7 @@ class TranslationMiddleware:
 
         try:
             client_ip = ClientIP.objects.filter(ip_address=ip).first()
+
             if client_ip:
                 return client_ip.lang
             
@@ -69,7 +70,7 @@ class TranslationMiddleware:
         try:
             response = session.translate_text(
                 Text=text,
-                SourceLanguageCode='fr',
+                SourceLanguageCode='en',
                 TargetLanguageCode=target_language
             )
 
