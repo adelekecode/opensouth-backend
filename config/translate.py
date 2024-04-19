@@ -3,16 +3,19 @@ import os
 from public.models import ClientIP
 
 
-session = boto3.Session(
-    "translate", region_name=os.getenv("region"),
-    aws_access_key_id=os.getenv("mail_access_id"),
-    aws_secret_access_key=os.getenv("mail_secret_key")
-)
-
-
 
 
 class TranslationMiddleware:
+
+    def session(self):
+        session = boto3.Session(
+            "translate", region_name=os.getenv("region"),
+            aws_access_key_id=os.getenv("mail_access_id"),
+            aws_secret_access_key=os.getenv("mail_secret_key")
+        )
+
+        return session
+
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -64,7 +67,7 @@ class TranslationMiddleware:
     def translate_text(self, text, target_language="en"):
         
   
-        response = session.translate_text(
+        response = self.session.translate_text(
             Text=text,
             SourceLanguageCode='fr',
             TargetLanguageCode=target_language
