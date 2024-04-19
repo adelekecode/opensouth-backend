@@ -25,4 +25,5 @@ urlpatterns = [
     path('public/popular/organisation/pk/<uuid:pk>/datasets/', PublicPopularOrganisationDataset.as_view(), name="public_popular_organisation_dataset"),
     path('public/support/system/', PublicSupportSystem.as_view(), name="public_support_system"),
     path('public/location/analysis/<uuid:pk>/', PublicLocationRequest.as_view(), name="public_location_analysis"),
+    path('public/IP/', GetClientIP.as_view(), name="public_client_ip"),
 ]
