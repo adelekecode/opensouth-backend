@@ -28,6 +28,10 @@ class TranslationMiddleware:
         for key, value in data.items():
             if isinstance(value, str):
                 translated_text = self.translate_text(value, target_language)
+                print(translated_text)
+                print(value)
+                print("target_language", target_language)
+                
                 data[key] = translated_text
                 
             elif isinstance(value, dict):
@@ -73,9 +77,12 @@ class TranslationMiddleware:
                 SourceLanguageCode='en',
                 TargetLanguageCode=target_language
             )
+            print(response.json()["TranslatedText"])
+            print(text)
 
             return response.json()["TranslatedText"]
         
+    
         except Exception:
 
             return text
