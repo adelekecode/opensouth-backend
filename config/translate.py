@@ -72,7 +72,10 @@ class TranslationMiddleware:
             SourceLanguageCode='fr',
             TargetLanguageCode=target_language
         )
+        if response.status_code == 200:
 
-        translated_text = response['TranslatedText']
+            translated_text = response['TranslatedText']
 
-        return translated_text
+            return translated_text
+        else:
+            return text
