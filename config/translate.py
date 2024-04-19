@@ -7,14 +7,8 @@ import json
 
 class TranslationMiddleware:
 
-    def session(self):
-        session = boto3.Session(
-            "translate", region_name=os.getenv("region"),
-            aws_access_key_id=os.getenv("mail_access_id"),
-            aws_secret_access_key=os.getenv("mail_secret_key")
-        )
-
-        return session
+        
+       
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -36,6 +30,7 @@ class TranslationMiddleware:
             if isinstance(value, str):
                 translated_text = self.translate_text(value, target_language)
                 data[key] = translated_text
+                
             elif isinstance(value, dict):
                 self.translate_dict(value, target_language)
             elif isinstance(value, list):
@@ -63,21 +58,27 @@ class TranslationMiddleware:
         except ClientIP.DoesNotExist:
             return "en"
 
-        
-        
 
     def translate_text(self, text, target_language):
-        
-  
-        response = self.session.translate_text(
-            Text=text,
-            SourceLanguageCode='fr',
-            TargetLanguageCode=target_language
+
+        session = boto3.Session(
+            "translate", region_name=os.getenv("region"),
+            aws_access_key_id=os.getenv("mail_access_id"),
+            aws_secret_access_key=os.getenv("mail_secret_key")
         )
-        if response.status_code == 200:
 
-            translated_text = response.json()["TranslatedText"]
+        
+        try:
+            response = session.translate_text(
+                Text=text,
+                SourceLanguageCode='fr',
+                TargetLanguageCode=target_language
+            )
 
-            return translated_text
-        else:
+            return response.json()["TranslatedText"]
+        
+        except Exception:
+
             return text
+
+        
