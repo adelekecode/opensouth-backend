@@ -54,7 +54,7 @@ class TranslationMiddleware:
             ip = request.META.get('REMOTE_ADDR')
 
         try:
-            client_ip = ClientIP.objects.get(ip_address=ip)
+            client_ip = ClientIP.objects.filter(ip_address=ip).first()
         except ClientIP.DoesNotExist:
             client_ip = ClientIP(ip_address=ip)
             client_ip.save()
