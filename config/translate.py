@@ -8,7 +8,6 @@ import json
 class TranslationMiddleware:
 
         
-       
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -62,9 +61,8 @@ class TranslationMiddleware:
     def translate_text(self, text, target_language):
 
         session = boto3.Session(
-            "translate", region_name=os.getenv("region"),
-            aws_access_key_id=os.getenv("mail_access_id"),
-            aws_secret_access_key=os.getenv("mail_secret_key")
+            "translate", 
+            region_name=os.getenv("region")
         )
 
         
