@@ -371,14 +371,25 @@ class GetClientIP(APIView):
             ip = request.META.get('REMOTE_ADDR')
 
         lang = request.GET.get('lang', None)
+
+        langs = lang
+
         if lang is None:
             lang = 'en'
 
-        cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang)
+        if ClientIP.objects.filter(ip_address=ip).exists():
+
+            cl_ip = ClientIP.objects.filter(ip_address=ip).first()
+            cl_ip.lang = lang
+            cl_ip.save()
+
+        else:   
+            cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang)
+
 
         data = {
             "status": "accepted",
-            "lang_status": lang if lang else 'en- lang not provided',
+            "lang_status": langs if langs else 'en- lang not provided',
             "instance": ClientIPSerializer(cl_ip).data
 
         }
