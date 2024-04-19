@@ -16,7 +16,6 @@ class TranslationMiddleware:
 
         return session
 
-    
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -46,8 +45,8 @@ class TranslationMiddleware:
 
 
     def get_target_language(self, request):
-
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
@@ -55,19 +54,19 @@ class TranslationMiddleware:
 
         try:
             client_ip = ClientIP.objects.filter(ip_address=ip).first()
-            ## must be removed
-            client_ip.lang = "en"
-            client_ip.save()
+            if client_ip:
+                return client_ip.lang
+            
+            else:
+                return "en"
+            
         except ClientIP.DoesNotExist:
-            client_ip = ClientIP(ip_address=ip, lang="en")
-            client_ip.save()
-
-        return client_ip.lang
+            return "en"
 
         
         
 
-    def translate_text(self, text, target_language="en"):
+    def translate_text(self, text, target_language):
         
   
         response = self.session.translate_text(
