@@ -55,8 +55,11 @@ class TranslationMiddleware:
 
         try:
             client_ip = ClientIP.objects.filter(ip_address=ip).first()
+            ## must be removed
+            client_ip.lang = "en"
+            client_ip.save()
         except ClientIP.DoesNotExist:
-            client_ip = ClientIP(ip_address=ip)
+            client_ip = ClientIP(ip_address=ip, lang="en")
             client_ip.save()
 
         return client_ip.lang
