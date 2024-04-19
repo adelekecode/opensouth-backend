@@ -66,6 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_deleted    = models.BooleanField(_('deleted'), default=False)
     date_joined   = models.DateTimeField(_('date joined'), auto_now_add=True)
     fcm_token = models.TextField(null=True)
+    lang = models.CharField(max_length=100, null=True)
     provider = models.CharField(_('provider'), max_length=255, default="email", choices=(('email',"email"),
                                                                                          ('google',"google")))
     

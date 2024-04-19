@@ -3,6 +3,8 @@ from main.serializers import *
 from main.models import *
 from rest_framework import status
 from rest_framework.response import Response
+from .models import *
+from .serializers import *
 from accounts.permissions import *
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 # from accounts.permissions import *
@@ -352,4 +354,41 @@ class PublicLocationRequest(APIView):
             location.save()
 
             return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        
+
+
+
+
+
+class GetClientIP(APIView):
+
+    def get(self, request):
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+
+        lang = request.GET.get('lang', None)
+        if lang is None:
+            lang = 'en'
+
+        cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang)
+
+        data = {
+            "status": "accepted",
+            "lang_status": lang if lang else 'en- lang not provided',
+            "instance": ClientIPSerializer(cl_ip).data
+
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+
+        
+
+        
+
         
