@@ -1,7 +1,7 @@
 import boto3
 import os
 from public.models import ClientIP
-
+import json
 
 
 
@@ -74,7 +74,7 @@ class TranslationMiddleware:
         )
         if response.status_code == 200:
 
-            translated_text = response['TranslatedText']
+            translated_text = response.json()["TranslatedText"]
 
             return translated_text
         else:
