@@ -2,7 +2,6 @@ from django.shortcuts import render
 from main.serializers import *
 from main.models import *
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -20,6 +19,7 @@ from accounts.serializers import *
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
 from .email import *
+from django.http import HttpResponse
 from main.email import *
 
 
@@ -66,11 +66,11 @@ class AdminDatatsetView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = DatasetSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = DatasetSerializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
     
 
 class AdminDatasetDetails(APIView):
@@ -83,11 +83,11 @@ class AdminDatasetDetails(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = DatasetSerializer(dataset)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
 
@@ -108,7 +108,7 @@ class AdminDatasetFiles(generics.ListAPIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
         
         return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset).order_by('-created_at')
 
@@ -161,11 +161,11 @@ class AdminOrganisationView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = OrganisationSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = OrganisationSerializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
 
@@ -182,22 +182,22 @@ def dataset_actions(request, pk, action):
 
     if request.method == 'POST':
         if pk is None:
-            return Response({"error": "dataset id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "dataset id is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         if action is None:
-            return Response({"error": "action is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "action is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             dataset = Datasets.objects.get(id=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "dataset does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         if action == "rejected":
 
             dataset.status = "rejected"
             remark = request.data.get('remark', None)
             if remark is None:
-                return Response({"error": "remark is required"}, status=status.HTTP_400_BAD_REQUEST) 
+                return HttpResponse({"error": "remark is required"}, status=status.HTTP_400_BAD_REQUEST) 
                
             dataset.save()
             message = f"""
@@ -209,7 +209,7 @@ Please contact the administrator for more information.
 """
             dataset_actions_mail(user=dataset.user, action="rejected", message=message)
 
-            return Response({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "dataset rejected successfully"}, status=status.HTTP_200_OK)
         
         elif action == "published":
 
@@ -226,7 +226,7 @@ Your dataset {str(dataset.title).capitalize()} has been published successfully.
                 dataset.organisation.dataset_count += 1
                 dataset.organisation.save()
 
-            return Response({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "dataset approved successfully"}, status=status.HTTP_200_OK)
         
         elif action == "unpublished":
 
@@ -239,7 +239,7 @@ Please contact the administrator for more information.
 """
             dataset_actions_mail(user=dataset.user, action="unpublished", message=message)
 
-            return Response({"message": "dataset unpublished successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "dataset unpublished successfully"}, status=status.HTTP_200_OK)
 
         
         elif action == "further_review":
@@ -253,7 +253,7 @@ Please contact the administrator for more information.
 """
             dataset_actions_mail(user=dataset.user, action="further_review", message=message)
 
-            return Response({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "dataset kept for further review successfully"}, status=status.HTTP_200_OK)
         
         elif action == "delete":
                         
@@ -266,10 +266,10 @@ Please contact the administrator for more information.
 """
             dataset_actions_mail(user=dataset.user, action="deleted", message=message)
 
-            return Response({"message": "dataset deleted successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "dataset deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
 
 
@@ -285,7 +285,7 @@ def organisation_actions(request, pk, action):
         try:
             organisation = Organisations.objects.get(id=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         if action == "rejected":
 
@@ -300,7 +300,7 @@ Your request to create an organisation has been rejected. Please contact the adm
             for user in users:
                 organisation_actions_mail(user=user, action="rejected", message=message)
             
-            return Response({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation rejected successfully"}, status=status.HTTP_200_OK)
         
         elif action == "approved":
 
@@ -316,7 +316,7 @@ Your request to create an organisation {str(organisation.name).capitalize()} has
             for user in users:
                 organisation_actions_mail(user=user, action="approved", message=message)
             
-            return Response({"message": "organisation approved successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation approved successfully"}, status=status.HTTP_200_OK)
 
 
         elif action == "block":
@@ -331,7 +331,7 @@ The organisation {str(organisation.name).capitalize()} has been placed on a temp
             for user in users:
                 organisation_actions_mail(user=user, action="blocked", message=message)
         
-            return Response({"message": "organisation blocked successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation blocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "unblock":
                 
@@ -347,17 +347,17 @@ The tempoary ban place on the organisation {str(organisation.name).capitalize()}
             for user in users:
                 organisation_actions_mail(user=user, action="unblocked", message=message)
 
-            return Response({"message": "organisation unblocked successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation unblocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "delete":
                     
             organisation.is_deleted = True
             organisation.save()
 
-            return Response({"message": "organisation deleted successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation deleted successfully"}, status=status.HTTP_200_OK)
 
         else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
 
 
@@ -377,7 +377,7 @@ def organisation_indicators(request):
 
     }
         
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
 
 
 
@@ -397,9 +397,9 @@ class NewsView(APIView):
 
             data = NewsSerializer(serializer.instance).data
 
-            return Response(data, status=status.HTTP_201_CREATED)
+            return HttpResponse(data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminOrganisationDetailView(generics.RetrieveUpdateAPIView):
@@ -440,11 +440,11 @@ class AdminListNewsView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NewsSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = NewsSerializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
    
@@ -469,12 +469,12 @@ def news_views(request, pk):
         try:
             news = News.objects.get(id=pk)
         except News.DoesNotExist:
-            return Response({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         news.views += 1
         news.save()
 
-        return Response({"message": "news views updated successfully"}, status=status.HTTP_200_OK)
+        return HttpResponse({"message": "news views updated successfully"}, status=status.HTTP_200_OK)
     
 
 
@@ -488,7 +488,7 @@ def news_actions(request, pk, action):
         try:
             news = News.objects.get(id=pk)
         except News.DoesNotExist:
-            return Response({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "news does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         if action == "publish":
 
@@ -496,18 +496,18 @@ def news_actions(request, pk, action):
             news.published_at = timezone.now()
             news.save()
             
-            return Response({"message": "news objectt updated successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "news objectt updated successfully"}, status=status.HTTP_200_OK)
         
         if action == "unpublish":
 
             news.satus = "unpublished"
             news.save()
 
-            return Response({"message": "news updated successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "news updated successfully"}, status=status.HTTP_200_OK)
         
         
         else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
     
 
 
@@ -528,18 +528,18 @@ class AdminOrganisation_Requests(generics.ListAPIView):
             try:
                 organisation = Organisations.objects.get(id=pk)
             except Organisations.DoesNotExist:
-                return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                return HttpResponse({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
     
             queryset = self.filter_queryset(self.get_queryset()).filter(organisation=organisation)
 
             serializer = OrganisationRequestSerializer(queryset, many=True)
 
-            return Response(serializer.data)
+            return HttpResponse(serializer.data)
         
         queryset = self.filter_queryset(self.get_queryset())
         serializer = OrganisationRequestSerializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
 
@@ -554,7 +554,7 @@ def organisation_request_actions(request, pk, action):
         try:
             organisation_request = OrganisationRequests.objects.get(id=pk)
         except OrganisationRequests.DoesNotExist:
-            return Response({"error": "organisation request does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "organisation request does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         if action == "reject":
 
@@ -563,7 +563,7 @@ def organisation_request_actions(request, pk, action):
 
             organisation_reject_users(organisation=organisation_request.organisation, user=organisation_request.user)
             
-            return Response({"message": "organisation request rejected successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation request rejected successfully"}, status=status.HTTP_200_OK)
         
         elif action == "approve":
 
@@ -577,10 +577,10 @@ def organisation_request_actions(request, pk, action):
             organisation_add_users(organisation=organisation_request.organisation, user=organisation_request.user)
 
 
-            return Response({"message": "organisation request approved successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "organisation request approved successfully"}, status=status.HTTP_200_OK)
         
         else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
 
 
@@ -625,11 +625,11 @@ class AdminUsers(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = CustomUserSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = CustomUserSerializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
     
 
 @api_view(['POST'])
@@ -642,7 +642,7 @@ def user_actions(request, pk, action):
         try:
             user = User.objects.get(id=pk)
         except User.DoesNotExist:
-            return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
 
         if action == "block":
@@ -650,24 +650,24 @@ def user_actions(request, pk, action):
             user.is_active = False
             user.save()
 
-            return Response({"message": "user blocked successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "user blocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "unblock":
 
             user.is_active = True
             user.save()
 
-            return Response({"message": "user unblocked successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "user unblocked successfully"}, status=status.HTTP_200_OK)
         
         elif action == "delete":
 
             user.is_deleted = True
             user.save()
 
-            return Response({"message": "user deleted successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "user deleted successfully"}, status=status.HTTP_200_OK)
         
         else:
-            return Response({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
 
 
@@ -685,7 +685,7 @@ class AdminDashboardCounts(APIView):
             "news": News.objects.filter(is_deleted=False).count()
         }
 
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
     
 
 class AverageCategoryView(APIView):
@@ -726,7 +726,7 @@ class AverageCategoryView(APIView):
             "monthly": monthly
         }
         
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
     
 
 
@@ -772,7 +772,7 @@ class AverageDownloadView(APIView):
         }
         
         
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
     
 
 class AdminMostPublishedOrganisation(APIView):
@@ -787,4 +787,4 @@ class AdminMostPublishedOrganisation(APIView):
 
         data = OrganisationSerializer(organisation, many=True).data
 
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
