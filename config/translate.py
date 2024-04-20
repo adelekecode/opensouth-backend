@@ -3,7 +3,6 @@ import os
 from public.models import ClientIP
 import json
 from django.http import JsonResponse
-from rest_framework.response import Response
 
 class TranslationMiddleware:
 
@@ -15,13 +14,14 @@ class TranslationMiddleware:
         if response.status_code == 200 and response.data:
             target_language = self.get_target_language(request)
             translated_response = self.translate_response(response, target_language)
-            return Response(translated_response)  
+            return JsonResponse(translated_response) 
 
         return response
 
     def translate_response(self, response, target_language):
         translated_dict = self.translate_dict(response.data, target_language)
-        return translated_dict
+        response.data = translated_dict 
+        return response.data
 
     def translate_dict(self, data, target_language):
         if isinstance(data, dict):
@@ -37,7 +37,6 @@ class TranslationMiddleware:
                     for item in value:
                         if isinstance(item, dict):
                             translated_data[key].append(self.translate_dict(item, target_language))
-                            
             return translated_data
 
     def get_target_language(self, request):
