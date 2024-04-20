@@ -44,10 +44,10 @@ class TranslationMiddleware:
             if client_ip:
                 return client_ip.lang
             else:
-                return "en"
+                return "fr"
             
         except ClientIP.DoesNotExist:
-            return "en"
+            return "fr"
 
     # def translate_text(self, text, target_language):
     #     session = boto3.Session(
