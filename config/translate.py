@@ -12,24 +12,32 @@ class TranslationMiddleware:
         response = self.get_response(request)
         if response.status_code == 200:
             target_language = self.get_target_language(request)
-            self.translate_response(response, target_language)
-        return response
+            response_dict = self.translate_response(response, target_language)
+            print(f"Translated response: {response_dict}")
+
+        return response_dict
 
     def translate_response(self, response, target_language):
-        self.translate_dict(response, target_language)
+        translated_dict = self.translate_dict(response, target_language)
+        print(f"Translated dict: {translated_dict}")
+        
+        return translated_dict
 
     def translate_dict(self, data, target_language):
         if isinstance(data, dict):
+            translated_data = {}
             for key, value in data.items():
                 if isinstance(value, str):
                     translated_text = self.translate_text(value, target_language)
-                    data[key] = translated_text
+                    translated_data[key] = translated_text
                 elif isinstance(value, dict):
-                    self.translate_dict(value, target_language)
+                    translated_data[key] = self.translate_dict(value, target_language)
                 elif isinstance(value, list):
+                    translated_data[key] = []
                     for item in value:
                         if isinstance(item, dict):
-                            self.translate_dict(item, target_language)
+                            translated_data[key].append(self.translate_dict(item, target_language))
+            return translated_data
 
     def get_target_language(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -44,26 +52,11 @@ class TranslationMiddleware:
             if client_ip:
                 return client_ip.lang
             else:
-                return "fr"
+                return "en"
             
         except ClientIP.DoesNotExist:
-            return "fr"
+            return "en"
 
-    # def translate_text(self, text, target_language):
-    #     session = boto3.Session(
-    #         "translate", 
-    #         region_name=os.getenv("region")
-    #     )
-        
-    #     try:
-    #         response = session.translate_text(
-    #             Text=text,
-    #             SourceLanguageCode='en',
-    #             TargetLanguageCode=target_language
-    #         )
-    #         return response['TranslatedText']
-    #     except Exception:
-    #         return text
         
     def translate_text(self, text, target_language):
 
@@ -83,7 +76,7 @@ class TranslationMiddleware:
                 TargetLanguageCode=target_language
             )
             translated_text = response['TranslatedText']
-            
+            print(f"Translated text: {translated_text}")
             return translated_text
         except Exception as e:
             print(f"Translation error: {e}")
