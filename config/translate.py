@@ -13,8 +13,9 @@ class TranslationMiddleware:
         response = self.get_response(request)
         if isinstance(response, JsonResponse) and response.status_code == 200:
             target_language = self.get_target_language(request)
-            translated_response = self.translate_response(response.json(), target_language)
-            return JsonResponse(translated_response) 
+            response_json = json.loads(response.content)
+            translated_response = self.translate_response(response_json, target_language)
+            return JsonResponse(translated_response)  # Return the translated response
 
         return response
 
