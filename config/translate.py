@@ -11,9 +11,9 @@ class TranslationMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if response.status_code == 200 and response.data:
+        if isinstance(response, JsonResponse) and response.status_code == 200:
             target_language = self.get_target_language(request)
-            translated_response = self.translate_response(response, target_language)
+            translated_response = self.translate_response(response.json(), target_language)
             return JsonResponse(translated_response) 
 
         return response
