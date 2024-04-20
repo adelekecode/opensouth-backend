@@ -20,9 +20,10 @@ class TranslationMiddleware:
         return response
 
     def translate_response(self, response, target_language):
-        translated_dict = self.translate_dict(response.data, target_language)
-        response.data = translated_dict 
-        return response.data
+        translated_dict = self.translate_dict(response, target_language)
+        print(f"Translated dict: {translated_dict}")
+
+        return JsonResponse(translated_dict)
 
     def translate_dict(self, data, target_language):
         if isinstance(data, dict):
