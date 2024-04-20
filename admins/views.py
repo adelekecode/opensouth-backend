@@ -66,7 +66,7 @@ class AdminDatatsetView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = DatasetSerializer(page, many=True)
-            return self.get_paginated_Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = DatasetSerializer(queryset, many=True)
 
@@ -161,7 +161,7 @@ class AdminOrganisationView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = OrganisationSerializer(page, many=True)
-            return self.get_paginated_Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = OrganisationSerializer(queryset, many=True)
 
@@ -440,7 +440,7 @@ class AdminListNewsView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NewsSerializer(page, many=True)
-            return self.get_paginated_Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = NewsSerializer(queryset, many=True)
 
@@ -625,7 +625,7 @@ class AdminUsers(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = CustomUserSerializer(page, many=True)
-            return self.get_paginated_Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = CustomUserSerializer(queryset, many=True)
 

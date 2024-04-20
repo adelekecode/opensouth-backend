@@ -84,7 +84,7 @@ class PublicOrganisationView(generics.ListAPIView):
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_Json(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
 
@@ -166,7 +166,7 @@ class PublicDatasetView(generics.ListAPIView):
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
 
