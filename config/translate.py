@@ -4,7 +4,6 @@ from public.models import ClientIP
 import json
 from django.http import JsonResponse
 
-
 class TranslationMiddleware:
 
     def __init__(self, get_response):
@@ -14,15 +13,15 @@ class TranslationMiddleware:
         response = self.get_response(request)
         if response.status_code == 200 and response.data:
             target_language = self.get_target_language(request)
-            self.translate_response(response, target_language)
+            translated_response = self.translate_response(response, target_language)
+            return JsonResponse(translated_response) 
 
         return response
 
     def translate_response(self, response, target_language):
-        translated_dict = self.translate_dict(response, target_language)
-        print(f"Translated dict: {translated_dict}")
-
-        return translated_dict
+        translated_dict = self.translate_dict(response.data, target_language)
+        response.data = translated_dict 
+        return response.data
 
     def translate_dict(self, data, target_language):
         if isinstance(data, dict):
@@ -58,14 +57,11 @@ class TranslationMiddleware:
         except ClientIP.DoesNotExist:
             return "en"
 
-        
     def translate_text(self, text, target_language):
-
         session = boto3.Session(
-        region_name=os.getenv("region"),
-        aws_access_key_id=os.getenv("mail_access_id"),
-        aws_secret_access_key=os.getenv("mail_secret_key")
-
+            region_name=os.getenv("region"),
+            aws_access_key_id=os.getenv("mail_access_id"),
+            aws_secret_access_key=os.getenv("mail_secret_key")
         )
     
         translate_client = session.client('translate')
@@ -77,7 +73,6 @@ class TranslationMiddleware:
                 TargetLanguageCode=target_language
             )
             translated_text = response['TranslatedText']
-            print(f"Translated text: {translated_text}")
             return translated_text
         except Exception as e:
             print(f"Translation error: {e}")
