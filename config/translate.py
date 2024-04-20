@@ -2,6 +2,8 @@ import boto3
 import os
 from public.models import ClientIP
 import json
+from django.http import JsonResponse
+
 
 class TranslationMiddleware:
 
@@ -10,17 +12,16 @@ class TranslationMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if response.status_code == 200:
+        if response.status_code == 200 and response.data:
             target_language = self.get_target_language(request)
-            response_dict = self.translate_response(response, target_language)
-            print(f"Translated response: {response_dict}")
+            self.translate_response(response, target_language)
 
-        return response_dict
+        return response
 
     def translate_response(self, response, target_language):
         translated_dict = self.translate_dict(response, target_language)
         print(f"Translated dict: {translated_dict}")
-        
+
         return translated_dict
 
     def translate_dict(self, data, target_language):
