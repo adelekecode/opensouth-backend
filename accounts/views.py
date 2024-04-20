@@ -28,7 +28,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.http import HttpResponse
+from django.http import JsonResponse
 import requests
 import os
 
@@ -64,10 +64,10 @@ class CustomUserViewSet(UserViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_HttpResponse(serializer.data)
+            return self.get_paginated_JsonResponse(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return HttpResponse(serializer.data)
+        return JsonResponse(serializer.data)
     
     
     def destroy(self, request, *args, **kwargs):
@@ -83,7 +83,7 @@ class CustomUserViewSet(UserViewSet):
                 user=instance,
                 action = f"Deleted account"
             )
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+            return JsonResponse(status=status.HTTP_204_NO_CONTENT)
         
         elif request.user.role == "admin" and check_password(password, request.user.password):
             self.perform_destroy(instance)
@@ -91,11 +91,11 @@ class CustomUserViewSet(UserViewSet):
                 user=request.user,
                 action = f"Deleted account with ID {instance.id}"
             )
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+            return JsonResponse(status=status.HTTP_204_NO_CONTENT)
         
         # elif password=="google" and request.user.provider=="google":
         #     self.perform_destroy(instance)
-        #     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        #     return JsonResponse(status=status.HTTP_204_NO_CONTENT)
         else:
             raise AuthenticationFailed(detail={"message":"incorrect password"})
 
@@ -145,7 +145,7 @@ class AdminListCreateView(ListCreateAPIView):
             action = f"Created admin with email {instance.email}"
             )
 
-            return HttpResponse(data, status = status.HTTP_201_CREATED)
+            return JsonResponse(data, status = status.HTTP_201_CREATED)
 
         else:
             data = {
@@ -154,7 +154,7 @@ class AdminListCreateView(ListCreateAPIView):
                 'error' : serializer.errors,
             }
 
-            return HttpResponse(data, status = status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data, status = status.HTTP_400_BAD_REQUEST)
             
 
 
@@ -172,10 +172,10 @@ def reset_password_otp_verification(request):
         if serializer.is_valid():
             data = serializer.verify_otp(request, data=serializer.validated_data)
             
-            return HttpResponse(data, status=status.HTTP_200_OK)
+            return JsonResponse(data, status=status.HTTP_200_OK)
         else:
 
-            return HttpResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
             
 
 
@@ -220,7 +220,7 @@ def user_login(request):
 
                         login_mail(email=user.email, name=user.first_name)
              
-                        return HttpResponse(data, status=status.HTTP_200_OK)
+                        return JsonResponse(data, status=status.HTTP_200_OK)
                     
 
                     except Exception as e:
@@ -231,20 +231,20 @@ def user_login(request):
                     
                     'error': 'This account has not been activated'
                     }
-                return HttpResponse(data, status=status.HTTP_403_FORBIDDEN)
+                return JsonResponse(data, status=status.HTTP_403_FORBIDDEN)
 
             else:
                 data = {
                     
                     'error': 'Please provide a valid email and a password'
                     }
-                return HttpResponse(data, status=status.HTTP_401_UNAUTHORIZED)
+                return JsonResponse(data, status=status.HTTP_401_UNAUTHORIZED)
         else:
                 data = {
                     
                     'error': serializer.errors
                     }
-                return HttpResponse(data, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
             
             
 @swagger_auto_schema(method="post",request_body=LogoutSerializer())
@@ -255,7 +255,7 @@ def logout_view(request):
     """Log out a user by blacklisting their refresh token then making use of django's internal logout function to flush out their session and completely log them out.
 
     Returns:
-        Json HttpResponse with message of success and status code of 204.
+        Json JsonResponse with message of success and status code of 204.
     """
     
     serializer = LogoutSerializer(data=request.data)
@@ -270,9 +270,9 @@ def logout_view(request):
                                         request=request, user=user)
         logout(request)
         
-        return HttpResponse({"message": "success"}, status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse({"message": "success"}, status=status.HTTP_204_NO_CONTENT)
     except TokenError:
-        return HttpResponse({"message": "failed", "error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"message": "failed", "error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -286,7 +286,7 @@ def update_firebase_token(request):
     """Update the FCM token for a logged in use to enable push notifications
 
     Returns:
-        Json HttpResponse with message of success and status code of 200.
+        Json JsonResponse with message of success and status code of 200.
     """
     
     serializer = FirebaseSerializer(data=request.data)
@@ -298,7 +298,7 @@ def update_firebase_token(request):
     request.user.fcm_token = fcm_token
     request.user.save()
         
-    return HttpResponse({"message": "success"}, status=status.HTTP_200_OK)
+    return JsonResponse({"message": "success"}, status=status.HTTP_200_OK)
     
 
 
@@ -311,10 +311,10 @@ def reset_otp(request):
         if serializer.is_valid():
             data = serializer.get_new_otp()
             
-            return HttpResponse(data, status=status.HTTP_200_OK)
+            return JsonResponse(data, status=status.HTTP_200_OK)
         
         else:
-            return HttpResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
         
         
             
@@ -331,10 +331,10 @@ def otp_verification(request):
         if serializer.is_valid():
             data = serializer.verify_otp(request)
             
-            return HttpResponse(data, status=status.HTTP_200_OK)
+            return JsonResponse(data, status=status.HTTP_200_OK)
         else:
 
-            return HttpResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionList(ListAPIView):
@@ -354,7 +354,7 @@ def activity_logs(request):
     
     logs = ActivityLog.objects.filter(is_deleted=False, user=request.user).order_by("-date_created").values("action")[:10]
     
-    return HttpResponse(logs, status=status.HTTP_200_OK)
+    return JsonResponse(logs, status=status.HTTP_200_OK)
 
 
 
@@ -372,7 +372,7 @@ def image_upload(request):
         user.image = serializer.validated_data.get("image")
         user.save()
         
-        return HttpResponse({"message": "upload successful"}, status=status.HTTP_200_OK)
+        return JsonResponse({"message": "upload successful"}, status=status.HTTP_200_OK)
 
 
 
@@ -402,13 +402,13 @@ class PasswordResetView(APIView):
                 reset_url = f"{referer}reset-password/{uidb64}/{token}"
                 reset_password_mail(email=email, url=reset_url, name=user.first_name.title())
 
-                return HttpResponse({"message": "Reset password mail sent"}, status=200)
+                return JsonResponse({"message": "Reset password mail sent"}, status=200)
             
             else:
-                return HttpResponse({"error": "account not activated"}, status=403)
+                return JsonResponse({"error": "account not activated"}, status=403)
         
         else:
-            return HttpResponse({"error": "user not found"}, status=404)
+            return JsonResponse({"error": "user not found"}, status=404)
         
 
 
@@ -431,10 +431,10 @@ class PasswordResetConfirmView(APIView):
             user.set_password(serializer.data.get("password"))
             user.save()
 
-            return HttpResponse({"message": "password reset successful"}, status=200)
+            return JsonResponse({"message": "password reset successful"}, status=200)
         
         else:
-            return HttpResponse({"error": "invalid token"}, status=400)
+            return JsonResponse({"error": "invalid token"}, status=400)
         
 
 
@@ -458,10 +458,10 @@ def pin_verification(request):
             verify_pin = VerificationPin.objects.get(pin=pin)
 
             if verify_pin.is_active == False:
-                return HttpResponse({"error": "pin has been used"}, status=400)
+                return JsonResponse({"error": "pin has been used"}, status=400)
             
             if verify_pin.organisation.is_verified:
-                return HttpResponse({"error": "organisation already verified"}, status=400)
+                return JsonResponse({"error": "organisation already verified"}, status=400)
             
             verify_pin.is_active = False
             verify_pin.save()
@@ -469,7 +469,7 @@ def pin_verification(request):
             verify_pin.organisation.is_verified = True
             verify_pin.organisation.save()
 
-            return HttpResponse({"message": "organisation verified successfully"}, status=200)
+            return JsonResponse({"message": "organisation verified successfully"}, status=200)
         
-        return HttpResponse({"error": "invalid pin"}, status=400)
+        return JsonResponse({"error": "invalid pin"}, status=400)
 
