@@ -5,7 +5,6 @@ from .models import *
 from django.db import IntegrityError
 from accounts.serializers import *
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from .email import *
@@ -36,6 +35,8 @@ from rest_framework.pagination import LimitOffsetPagination
 from accounts.serializers import CustomUserSerializer
 import requests
 import os
+from django.http import HttpResponse
+
 
 # Create your views here.
 
@@ -57,7 +58,7 @@ class CategoryView(APIView):
     @action(detail=True, methods=['POST'])
     def post(self, request):
         if request.user.role != "admin":
-            return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
+            return HttpResponse({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -65,10 +66,10 @@ class CategoryView(APIView):
         slug = slugify(name)
 
         if Categories.objects.filter(slug=slug).exists():
-            return Response({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "Category with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
     
 
     
@@ -104,10 +105,10 @@ class OrganisationView(APIView):
 
         if domain == "gmail.com":
             if type == "cooperate_organisation":
-                return Response({"error": "gmail is not allowed for cooperate organisations"}, status=status.HTTP_400_BAD_REQUEST)
+                return HttpResponse({"error": "gmail is not allowed for cooperate organisations"}, status=status.HTTP_400_BAD_REQUEST)
 
         if Organisations.objects.filter(slug=slug).exists():
-            return Response({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "Organisation with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer.save(
             user = request.user
@@ -117,7 +118,7 @@ class OrganisationView(APIView):
         serializer.instance.save()
 
   
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
     
     
     
@@ -151,18 +152,18 @@ def add_user_to_organisation(request, org_pk):
             organisation = Organisations.objects.get(pk=org_pk)
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
       
 
         if organisation.users.filter(pk=user.id).exists():
-            return Response({"error": "user already exists in user list"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "user already exists in user list"}, status=status.HTTP_400_BAD_REQUEST)
         
         organisation.users.add(user)
         organisation_add_users(organisation=organisation, user=user)
 
-        return Response({"message": "user added successfully"}, status=status.HTTP_200_OK)
+        return HttpResponse({"message": "user added successfully"}, status=status.HTTP_200_OK)
 
 class OrganisationUsers(generics.ListAPIView):
 
@@ -182,7 +183,7 @@ class OrganisationUsers(generics.ListAPIView):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         users = organisation.users.all()
 
@@ -208,9 +209,9 @@ def delete_user_from_organisation(request, org_pk, user_pk):
             organisation = Organisations.objects.get(pk=org_pk)
             user = User.objects.get(pk=user_pk)
         except User.DoesNotExist:
-            return Response({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
      
         if organisation.users.filter(pk=user.id).exists():
@@ -220,9 +221,9 @@ def delete_user_from_organisation(request, org_pk, user_pk):
             organisation_delete_users(organisation=organisation, user=user)
 
 
-            return Response({"message": "user removed successfully"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "user removed successfully"}, status=status.HTTP_200_OK)
         
-        return Response({"error": "user does not exist in user list"}, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse({"error": "user does not exist in user list"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -251,12 +252,12 @@ class DatasetView(APIView):
         slug = slugify(title)
 
         if Datasets.objects.filter(slug=slug).exists():
-            return Response({"error": "dataset with this title already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse({"error": "dataset with this title already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             category = Categories.objects.get(pk=cat_pk)
         except Categories.DoesNotExist:
-            return Response({"error": "category does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "category does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         if organisation:
 
@@ -264,13 +265,13 @@ class DatasetView(APIView):
                 organisation = Organisations.objects.get(pk=organisation)
             except Organisations.DoesNotExist:
 
-                return Response({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                return HttpResponse({"error": "organisation does not exist"}, status=status.HTTP_404_NOT_FOUND)
             
             if request.user not in organisation.users.all():
-                return Response({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
+                return HttpResponse({"error": "you are not authorised to create dataset for this organisation"}, status=status.HTTP_401_UNAUTHORIZED)
             
             if organisation.status != "approved":
-                return Response({"error": "organisation is not verified"}, status=status.HTTP_401_UNAUTHORIZED)
+                return HttpResponse({"error": "organisation is not verified"}, status=status.HTTP_401_UNAUTHORIZED)
             
 
             serializer.validated_data['organisation'] = organisation
@@ -286,7 +287,7 @@ class DatasetView(APIView):
 
 
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
 
       
 
@@ -305,14 +306,14 @@ class CreateDatasetFiles(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset instance not found"}, status=400)
+            return HttpResponse({"error": "dataset instance not found"}, status=400)
         
         file = serializer.validated_data['file']
         
         sha256 = hashlib.sha256(file.read()).hexdigest()
 
         if DatasetFiles.objects.filter(sha256=sha256).exists():
-            return Response({"error": "file with this contents already exists"}, status=400)
+            return HttpResponse({"error": "file with this contents already exists"}, status=400)
         
         serializer.save(
             user = request.user,
@@ -327,7 +328,7 @@ class CreateDatasetFiles(APIView):
         serializer.instance.file_name = file_name
         serializer.instance.save()
 
-        return Response(DatasetFileSerializer(serializer.instance).data, status=200)
+        return HttpResponse(DatasetFileSerializer(serializer.instance).data, status=200)
 
 
     def delete(self, request, pk):
@@ -335,31 +336,31 @@ class CreateDatasetFiles(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset instance not found"}, status=400)
+            return HttpResponse({"error": "dataset instance not found"}, status=400)
         
         file_id = request.GET.get('file_id', None)
         
         if not file_id:
-            return Response({"error": "url params file_id is required"}, status=400)
+            return HttpResponse({"error": "url params file_id is required"}, status=400)
         
         if not DatasetFiles.objects.filter(pk=file_id).exists():
-            return Response({"error": "file does not exist"}, status=400)
+            return HttpResponse({"error": "file does not exist"}, status=400)
         
         if not dataset.dataset_files.filter(pk=file_id).exists():
-            return Response({"error": "file does not exist in dataset"}, status=400)
+            return HttpResponse({"error": "file does not exist in dataset"}, status=400)
 
         if dataset.organisation:
             if request.user not in dataset.organisation.users.all():
-                return Response({"error": "you are not authorised to delete this file"}, status=401)
+                return HttpResponse({"error": "you are not authorised to delete this file"}, status=401)
             
         if request.user != dataset.dataset_files.get(pk=file_id).user:
-            return Response({"error": "you are not authorised to delete this file"}, status=401)
+            return HttpResponse({"error": "you are not authorised to delete this file"}, status=401)
         
         file = DatasetFiles.objects.get(pk=file_id)
         file.is_deleted = True
         file.save()
 
-        return Response({"message": "file deleted successfully"}, status=200)
+        return HttpResponse({"message": "file deleted successfully"}, status=200)
     
 
         
@@ -377,7 +378,7 @@ class DatasetViewsView(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset instance not found"}, status=400)
+            return HttpResponse({"error": "dataset instance not found"}, status=400)
         
         dataset.views += 1
         dataset.save()
@@ -388,7 +389,7 @@ class DatasetViewsView(APIView):
 
         CategoryAnalysis.objects.create(category=dataset.category, count=1, attribute='view')
 
-        return Response({"message": "dataset views updated"}, status=200)
+        return HttpResponse({"message": "dataset views updated"}, status=200)
 
         
 
@@ -410,7 +411,7 @@ class TagsView(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset instance not found"}, status=400)
+            return HttpResponse({"error": "dataset instance not found"}, status=400)
         
         tags = keywords
 
@@ -423,7 +424,7 @@ class TagsView(APIView):
                 tag = Tags.objects.create(name=tag)
                 dataset.tags.add(tag)
 
-        return Response({"message": "tags added successfully"}, status=200)
+        return HttpResponse({"message": "tags added successfully"}, status=200)
     
 
     def delete(self, request, pk):
@@ -436,7 +437,7 @@ class TagsView(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset instance not found"}, status=400)
+            return HttpResponse({"error": "dataset instance not found"}, status=400)
         
         tags = keywords
 
@@ -446,9 +447,9 @@ class TagsView(APIView):
                 tag = Tags.objects.get(slug=slug)
                 dataset.tags.remove(tag)
             else:
-                return Response({"error": f"tag does not exist {tag}"}, status=400)
+                return HttpResponse({"error": f"tag does not exist {tag}"}, status=400)
 
-        return Response({"message": "tags removed successfully"}, status=200)
+        return HttpResponse({"message": "tags removed successfully"}, status=200)
 
 
 
@@ -506,7 +507,7 @@ class UserDataset(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
     
 
 class UserDatasetFiles(generics.ListAPIView):
@@ -524,7 +525,7 @@ class UserDatasetFiles(generics.ListAPIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "dataset pk not found"}, status=status.HTTP_404_NOT_FOUND)
         
         
         return DatasetFiles.objects.filter(is_deleted=False, dataset=dataset).order_by('-created_at')
@@ -576,10 +577,10 @@ class UserOrganisationDatasets(generics.ListAPIView):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         if self.request.user not in organisation.users.all():
-            return Response({"error": "you are not authorised to view this"}, status=401)
+            return HttpResponse({"error": "you are not authorised to view this"}, status=401)
         
 
         return Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-created_at')
@@ -626,7 +627,7 @@ class UserOrganisationDatasets(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
 class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
@@ -646,10 +647,10 @@ class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
         try:
             organisation = Organisations.objects.get(pk=org_pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         if self.request.user not in organisation.users.all():
-            return Response({"error": "you are not authorised to view this"}, status=401)
+            return HttpResponse({"error": "you are not authorised to view this"}, status=401)
 
         return Datasets.objects.filter(pk = pk, is_deleted=False)
     
@@ -672,7 +673,7 @@ class DatasetDownloadCount(APIView):
         CategoryAnalysis.objects.create(category=files.dataset.category, count=1, attribute='download')
 
 
-        return Response({"message": "download count updated"}, status=200)
+        return HttpResponse({"message": "download count updated"}, status=200)
     
 
 @api_view(['POST'])
@@ -684,15 +685,15 @@ def resend_pin(request, pk):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         if organisation.is_verified:
-            return Response({"error": "organisation already verified"}, status=400)
+            return HttpResponse({"error": "organisation already verified"}, status=400)
         
         pin = generate_organisation_pin(organisation=organisation)
         organisation_verification_email(email=organisation.email, user=organisation.user, organization=organisation, pin=pin)
 
-        return Response({"message": "pin resent successfully"}, status=200)
+        return HttpResponse({"message": "pin resent successfully"}, status=200)
     
 
 
@@ -707,26 +708,26 @@ def request_to_join_organisation(request, pk):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         if organisation.status != "approved":
-            return Response({"error": "request not sent"}, status=401)
+            return HttpResponse({"error": "request not sent"}, status=401)
         
         if request.user.role == 'admin':
-            return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+            return HttpResponse({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
         
         if request.user in organisation.users.all():
-            return Response({"error": "you are already a member of this organisation"}, status=400)
+            return HttpResponse({"error": "you are already a member of this organisation"}, status=400)
         
         if OrganisationRequests.objects.filter(user=request.user, organisation=organisation, status='pending').exists():
-            return Response({"error": "you have a pending request"}, status=400)
+            return HttpResponse({"error": "you have a pending request"}, status=400)
         
         OrganisationRequests.objects.create(
             user=request.user,
             organisation=organisation
         )
 
-        return Response({"message": "request sent successfully"}, status=200)
+        return HttpResponse({"message": "request sent successfully"}, status=200)
         
 
 
@@ -754,7 +755,7 @@ class UserDashboardCounts(APIView):
             "downloads": downloads
         }
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
 
 
 class AdminMostAccesseData(APIView):
@@ -768,7 +769,7 @@ class AdminMostAccesseData(APIView):
         data = DatasetSerializer(dataset, many=True).data
         
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
     
 
 class UserMostAccessedData(APIView):
@@ -784,7 +785,7 @@ class UserMostAccessedData(APIView):
         dataset = Datasets.objects.filter(user=user, is_deleted=False, type='individual').order_by('-views')[:5]
         data = DatasetSerializer(dataset, many=True).data
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
     
 
 class OrganisationMostAccessedData(APIView):
@@ -796,12 +797,12 @@ class OrganisationMostAccessedData(APIView):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         dataset = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-views')[:5]
         data = DatasetSerializer(dataset, many=True).data
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
 
 
 
@@ -826,7 +827,7 @@ class UserLocationAnalysisView(APIView):
             "others": count
         }
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
 
 
 
@@ -840,7 +841,7 @@ class OrganisationLocationAnalysis(APIView):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation does not exist"}, status=404)
+            return HttpResponse({"error": "organisation does not exist"}, status=404)
         
         locations = LocationAnalysis.objects.filter(dataset__organisation=organisation)
 
@@ -853,7 +854,7 @@ class OrganisationLocationAnalysis(APIView):
             "others": count
         }
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
 
 
 class AdminLocationAnalysis(APIView):
@@ -876,7 +877,7 @@ class AdminLocationAnalysis(APIView):
             "others": count
         }
 
-        return Response(data, status=200)
+        return HttpResponse(data, status=200)
     
 
 

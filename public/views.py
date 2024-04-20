@@ -2,7 +2,6 @@ from django.shortcuts import render
 from main.serializers import *
 from main.models import *
 from rest_framework import status
-from rest_framework.response import Response
 from .models import *
 from .serializers import *
 from accounts.permissions import *
@@ -26,6 +25,7 @@ from rest_framework.pagination import PageNumberPagination
 from .serializers import *
 from accounts.serializers import *
 from rest_framework import viewsets
+from django.http import HttpResponse
 # Create your views here.
 
 
@@ -44,7 +44,7 @@ class PublicCategoryView(APIView):
         categories = Categories.objects.filter(is_deleted=False).order_by('name')
         serializer = CategorySerializer(categories, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return HttpResponse(serializer.data, status=status.HTTP_200_OK)
 
 
 class PublicCategoryDetailView(generics.RetrieveAPIView):
@@ -84,11 +84,11 @@ class PublicOrganisationView(generics.ListAPIView):
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
 
 
 
@@ -166,11 +166,11 @@ class PublicDatasetView(generics.ListAPIView):
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_HttpResponse(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)
+        return HttpResponse(serializer.data)
     
 
 class PublicDatasetDetailView(generics.RetrieveAPIView):
@@ -200,7 +200,7 @@ class PublicCounts(APIView):
             "files": DatasetFiles.objects.filter(is_deleted=False).count(),
         }
 
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
 
 
 
@@ -215,7 +215,7 @@ class PopularDataset(APIView):
         views = Datasets.objects.filter(is_deleted=False, status='published').order_by('-views')[:9]
         serializer = DatasetSerializer(views, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK) 
+        return HttpResponse(serializer.data, status=status.HTTP_200_OK) 
     
 
 
@@ -291,12 +291,12 @@ class PublicPopularOrganisationDataset(APIView):
         try:
             organisation = Organisations.objects.get(pk=pk)
         except Organisations.DoesNotExist:
-            return Response({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
 
         datasets = Datasets.objects.filter(is_deleted=False, status='published', organisation=organisation).order_by('-views')[:9]
         serializer = DatasetSerializer(datasets, many=True)
         
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return HttpResponse(serializer.data, status=status.HTTP_200_OK)
     
 
 
@@ -318,7 +318,7 @@ class PublicSupportSystem(APIView):
 
         )
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
     
 
 
@@ -333,7 +333,7 @@ class PublicLocationRequest(APIView):
         try:
             dataset = Datasets.objects.get(pk=pk)
         except Datasets.DoesNotExist:
-            return Response({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({"error": "dataset not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if country is None:
             raise ValidationError("country is required")
@@ -346,14 +346,14 @@ class PublicLocationRequest(APIView):
             location.count += 1
             location.save()
 
-            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "location updated"}, status=status.HTTP_200_OK)
         
         else:
             location = LocationAnalysis.objects.create(country=str(country).lower(), dataset=dataset, slug=slug)
             location.count += 1
             location.save()
 
-            return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+            return HttpResponse({"message": "location updated"}, status=status.HTTP_200_OK)
         
 
 
@@ -394,7 +394,7 @@ class GetClientIP(APIView):
 
         }
 
-        return Response(data, status=status.HTTP_200_OK)
+        return HttpResponse(data, status=status.HTTP_200_OK)
 
 
 
