@@ -1,8 +1,10 @@
 import boto3
 import os
 from public.models import ClientIP
-import json
 from django.http import JsonResponse
+from django.http import HttpResponse
+
+import json
 
 class TranslationMiddleware:
 
@@ -11,20 +13,17 @@ class TranslationMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if isinstance(response, JsonResponse) and response.status_code == 200:
+
+        if response.status_code == 200 and response.data:
             target_language = self.get_target_language(request)
-            response_json = json.loads(response.content)
-            translated_response = self.translate_response(response_json, target_language)
-            return JsonResponse(translated_response)  # Return the translated response
+            response_data = self.translate_response(response.data, target_language)
+            return JsonResponse(response_data, safe=False)
 
         return response
 
     def translate_response(self, response, target_language):
-        if isinstance(response, dict):
-            translated_dict = self.translate_dict(response, target_language)
-            return JsonResponse(translated_dict)
-        else:
-            return response
+        translated_dict = self.translate_dict(response, target_language)
+        return translated_dict
 
     def translate_dict(self, data, target_language):
         if isinstance(data, dict):
@@ -40,6 +39,7 @@ class TranslationMiddleware:
                     for item in value:
                         if isinstance(item, dict):
                             translated_data[key].append(self.translate_dict(item, target_language))
+
             return translated_data
 
     def get_target_language(self, request):
@@ -58,13 +58,17 @@ class TranslationMiddleware:
                 return "en"
             
         except ClientIP.DoesNotExist:
+
             return "en"
 
+        
     def translate_text(self, text, target_language):
+
         session = boto3.Session(
-            region_name=os.getenv("region"),
-            aws_access_key_id=os.getenv("mail_access_id"),
-            aws_secret_access_key=os.getenv("mail_secret_key")
+        region_name=os.getenv("region"),
+        aws_access_key_id=os.getenv("mail_access_id"),
+        aws_secret_access_key=os.getenv("mail_secret_key")
+
         )
     
         translate_client = session.client('translate')
@@ -76,7 +80,9 @@ class TranslationMiddleware:
                 TargetLanguageCode=target_language
             )
             translated_text = response['TranslatedText']
+
             return translated_text
+        
         except Exception as e:
             print(f"Translation error: {e}")
             return text
