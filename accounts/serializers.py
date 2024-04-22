@@ -5,14 +5,15 @@ from djoser.signals import user_activated
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from config.translate import TranslationMiddleware
 from .emails import *
-
+from public.models import ClientIP
 from .models import ActivationOtp
 from .signals import generate_otp, site_name
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import Permission, Group
 from drf_extra_fields.fields import Base64ImageField
-
+import uuid
 from config import settings
  
 User = get_user_model()
@@ -40,6 +41,24 @@ class CustomUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        id = request.GET.get('lang_id', None)
+        if id:
+            try:
+                lang = ClientIP.objects.get(id=id)
+                lang = lang.lang
+            except ClientIP.DoesNotExist:
+                raise serializers.ValidationError("clientIP instance not found")
+        else:
+            lang = "en"
+            
+        representation = super().to_representation(instance)
+
+        representation['bio'] = TranslationMiddleware.translate_text(text=representation['bio'], target_language=lang)
+
+        return representation
         
 
 
