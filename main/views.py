@@ -141,6 +141,13 @@ class OrganisationDetailView(generics.RetrieveUpdateAPIView):
     queryset = Organisations.objects.filter(is_deleted=False)
     lookup_field = 'slug'
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
 
 
 
@@ -183,6 +190,12 @@ class OrganisationUsers(generics.ListAPIView):
     queryset = User.objects.filter(is_deleted=False).order_by('-date_joined')
 
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def get_queryset(self):
 
         pk = self.kwargs['pk']
@@ -197,12 +210,6 @@ class OrganisationUsers(generics.ListAPIView):
         return users
 
    
-
-       
-
-        
-    
-
 
 
 @api_view(['DELETE'])
@@ -470,6 +477,14 @@ class UserDataset(generics.ListAPIView):
     search_fields = ['title', 'user__email', 'organisation__name']
     queryset = Datasets.objects.filter(is_deleted=False)
 
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
     def get_queryset(self):
         return Datasets.objects.filter(user=self.request.user, is_deleted=False, type='individual').order_by('-created_at')
     
@@ -526,6 +541,12 @@ class UserDatasetFiles(generics.ListAPIView):
     queryset = DatasetFiles.objects.filter(is_deleted=False).order_by('-created_at')
 
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def get_queryset(self):
         pk = self.kwargs['pk']
 
@@ -548,6 +569,11 @@ class UserDatasetDetailView(generics.RetrieveUpdateAPIView):
 
     lookup_field = 'pk'
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def get_queryset(self):
         return Datasets.objects.filter(user=self.request.user, is_deleted=False).order_by('-created_at')
@@ -561,6 +587,13 @@ class UserOrganisation(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = OrganisationSerializer
     queryset = Organisations.objects.filter(is_deleted=False)
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
     def get_queryset(self):
         return Organisations.objects.filter(users=self.request.user, is_deleted=False).order_by('-created_at')
@@ -577,6 +610,13 @@ class UserOrganisationDatasets(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['title', 'organisation__name']
     pagination_class = LimitOffsetPagination
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -645,6 +685,13 @@ class UserOrganisationDatasetDetail(generics.RetrieveUpdateAPIView):
     queryset = Datasets.objects.filter(is_deleted=False)
 
     lookup_field = 'pk'
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 
     def get_queryset(self):
@@ -773,7 +820,7 @@ class AdminMostAccesseData(APIView):
     def get(self, request):
 
         dataset = Datasets.objects.filter(is_deleted=False).order_by('-views')[:5]
-        data = DatasetSerializer(dataset, many=True).data
+        data = DatasetSerializer(dataset, many=True, context={'request': request}).data
         
 
         return Response(data, status=200)
@@ -790,7 +837,7 @@ class UserMostAccessedData(APIView):
         user = request.user
 
         dataset = Datasets.objects.filter(user=user, is_deleted=False, type='individual').order_by('-views')[:5]
-        data = DatasetSerializer(dataset, many=True).data
+        data = DatasetSerializer(dataset, many=True, context={'request': request}).data
 
         return Response(data, status=200)
     
@@ -807,7 +854,7 @@ class OrganisationMostAccessedData(APIView):
             return Response({"error": "organisation does not exist"}, status=404)
         
         dataset = Datasets.objects.filter(organisation=organisation, is_deleted=False).order_by('-views')[:5]
-        data = DatasetSerializer(dataset, many=True).data
+        data = DatasetSerializer(dataset, many=True, context={'request': request}).data
 
         return Response(data, status=200)
 
@@ -830,7 +877,7 @@ class UserLocationAnalysisView(APIView):
         count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
 
         data = {
-            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "top_locations": LocationAnalysisSerializer(locations, many=True, context={'request': request}).data,
             "others": count
         }
 
@@ -857,7 +904,7 @@ class OrganisationLocationAnalysis(APIView):
         count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
         
         data = {
-            "top_locations": LocationAnalysisSerializer(locations, many=True).data,
+            "top_locations": LocationAnalysisSerializer(locations, many=True, context={'request': request}).data,
             "others": count
         }
 
@@ -880,7 +927,7 @@ class AdminLocationAnalysis(APIView):
         count = locations.exclude(pk__in=top_5).aggregate(count=Sum('count'))['count']
 
         data = {
-            "top_locations": LocationAnalysisSerializer(top_5, many=True).data,
+            "top_locations": LocationAnalysisSerializer(top_5, many=True, context={'request': request}).data,
             "others": count
         }
 

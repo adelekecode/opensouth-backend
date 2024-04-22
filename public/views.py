@@ -390,7 +390,6 @@ class GetClientIP(APIView):
             cl_ip.save()
 
         else:
-
             if ClientIP.objects.filter(ip_address=ip).exists():
 
                 cl_ip = ClientIP.objects.filter(ip_address=ip).first()

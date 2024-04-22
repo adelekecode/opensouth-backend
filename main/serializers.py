@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 # from django.utils.translation import gettext_lazy as _
 from public.models import ClientIP
 from config.translate import TranslationMiddleware
-
+import uuid
 
 User = get_user_model()
 
@@ -31,17 +31,20 @@ class OrganisationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def to_representation(self, instance):
+        
         request = self.context.get('request')
-
         id = request.GET.get('lang_id', None)
-        if id is None:
-            lang= "en"
+        if id:
+            if type(id) == uuid.UUID:
+                try:
+                    lang = ClientIP.objects.get(id=id)
+                    lang = lang.lang
+                except ClientIP.DoesNotExist:
+                    raise serializers.ValidationError("clientIP instance not found")
+            else:
+                raise serializers.ValidationError("lang_id is required")
         else:
-            try:
-                lang = ClientIP.objects.get(id=id)
-                lang = lang.lang
-            except ClientIP.DoesNotExist:
-                raise serializers.ValidationError("clientIP instance not found")
+            lang = "en"
             
         representation = super().to_representation(instance)
 
@@ -69,17 +72,20 @@ class DatasetSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def to_representation(self, instance):
-        request = self.context.get('request')
 
+        request = self.context.get('request')
         id = request.GET.get('lang_id', None)
-        if id is None:
-            lang= "en"
+        if id:
+            if type(id) == uuid.UUID:
+                try:
+                    lang = ClientIP.objects.get(id=id)
+                    lang = lang.lang
+                except ClientIP.DoesNotExist:
+                    raise serializers.ValidationError("clientIP instance not found")
+            else:
+                raise serializers.ValidationError("lang_id is required")
         else:
-            try:
-                lang = ClientIP.objects.get(id=id)
-                lang = lang.lang
-            except ClientIP.DoesNotExist:
-                raise serializers.ValidationError("clientIP instance not found")
+            lang = "en"
             
         representation = super().to_representation(instance)
 
@@ -117,15 +123,17 @@ class CategorySerializer(serializers.ModelSerializer):
 
         request = self.context.get('request')
         id = request.GET.get('lang_id', None)
-
-        if id is None:
-            lang= "en"
+        if id:
+            if type(id) == uuid.UUID:
+                try:
+                    lang = ClientIP.objects.get(id=id)
+                    lang = lang.lang
+                except ClientIP.DoesNotExist:
+                    raise serializers.ValidationError("clientIP instance not found")
+            else:
+                raise serializers.ValidationError("lang_id is required")
         else:
-            try:
-                lang = ClientIP.objects.get(id=id)
-                lang = lang.lang
-            except ClientIP.DoesNotExist:
-                raise serializers.ValidationError("clientIP instance not found")
+            lang = "en"
             
         representation = super().to_representation(instance)
 
@@ -182,17 +190,20 @@ class NewsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def to_representation(self, instance):
-        request = self.context.get('request')
 
+        request = self.context.get('request')
         id = request.GET.get('lang_id', None)
-        if id is None:
-            lang= "en"
+        if id:
+            if type(id) == uuid.UUID:
+                try:
+                    lang = ClientIP.objects.get(id=id)
+                    lang = lang.lang
+                except ClientIP.DoesNotExist:
+                    raise serializers.ValidationError("clientIP instance not found")
+            else:
+                raise serializers.ValidationError("lang_id is required")
         else:
-            try:
-                lang = ClientIP.objects.get(id=id)
-                lang = lang.lang
-            except ClientIP.DoesNotExist:
-                raise serializers.ValidationError("clientIP instance not found")
+            lang = "en"
             
         representation = super().to_representation(instance)
 

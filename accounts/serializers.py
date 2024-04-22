@@ -13,7 +13,7 @@ from .signals import generate_otp, site_name
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import Permission, Group
 from drf_extra_fields.fields import Base64ImageField
-
+import uuid
 from config import settings
  
 User = get_user_model()
@@ -44,16 +44,18 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-
         id = request.GET.get('lang_id', None)
-        if id is None:
-            lang= "en"
+        if id:
+            if type(id) == uuid.UUID:
+                try:
+                    lang = ClientIP.objects.get(id=id)
+                    lang = lang.lang
+                except ClientIP.DoesNotExist:
+                    raise serializers.ValidationError("clientIP instance not found")
+            else:
+                raise serializers.ValidationError("lang_id is required")
         else:
-            try:
-                lang = ClientIP.objects.get(id=id)
-                lang = lang.lang
-            except ClientIP.DoesNotExist:
-                raise serializers.ValidationError("clientIP instance not found")
+            lang = "en"
             
         representation = super().to_representation(instance)
 
