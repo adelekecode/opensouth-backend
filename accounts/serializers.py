@@ -46,14 +46,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         id = request.GET.get('lang_id', None)
         if id:
-            if type(id) == uuid.UUID:
-                try:
-                    lang = ClientIP.objects.get(id=id)
-                    lang = lang.lang
-                except ClientIP.DoesNotExist:
-                    raise serializers.ValidationError("clientIP instance not found")
-            else:
-                raise serializers.ValidationError("lang_id is required")
+            try:
+                lang = ClientIP.objects.get(id=id)
+                lang = lang.lang
+            except ClientIP.DoesNotExist:
+                raise serializers.ValidationError("clientIP instance not found")
         else:
             lang = "en"
             
