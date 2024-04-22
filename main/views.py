@@ -59,8 +59,8 @@ class CategoryView(APIView):
     def post(self, request):
         if request.user.role != "admin":
             return Response({"error": "you are not authorised to create category"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = CategorySerializer(data=request.data)
+        
+        serializer = CategorySerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
         slug = slugify(name)
@@ -82,6 +82,13 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
     queryset = Categories.objects.filter(is_deleted=False)
     lookup_field = 'pk'
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 
 class OrganisationView(APIView):

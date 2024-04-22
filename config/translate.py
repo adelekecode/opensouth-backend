@@ -62,7 +62,8 @@ class TranslationMiddleware:
             return "en"
 
         
-    def translate_text(self, text, target_language):
+
+    def translate_text(text, target_language='fr'):
 
         session = boto3.Session(
         region_name=os.getenv("region"),

@@ -42,7 +42,7 @@ class PublicCategoryView(APIView):
 
     def get(self, request):
         categories = Categories.objects.filter(is_deleted=False).order_by('name')
-        serializer = CategorySerializer(categories, many=True)
+        serializer = CategorySerializer(categories, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -365,26 +365,40 @@ class GetClientIP(APIView):
     def get(self, request):
 
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
             ip = request.META.get('REMOTE_ADDR')
 
         lang = request.GET.get('lang', None)
+        id = request.GET.get('id', None)
 
         langs = lang
 
-        if lang is None:
+        if lang is None: 
             lang = 'en'
 
-        if ClientIP.objects.filter(ip_address=ip).exists():
-
-            cl_ip = ClientIP.objects.filter(ip_address=ip).first()
-            cl_ip.lang = lang
+        if id:
+            if langs is None:
+                return Response({"error": "lang is required"}, status=403)
+            
+            cl_ip = ClientIP.objects.filter(pk=id).first()
+            if not cl_ip:
+                return Response({"error": "client ip not found"}, status=401)
+            cl_ip.lang = langs
             cl_ip.save()
 
-        else:   
-            cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang)
+        else:
+
+            if ClientIP.objects.filter(ip_address=ip).exists():
+
+                cl_ip = ClientIP.objects.filter(ip_address=ip).first()
+                cl_ip.lang = lang
+                cl_ip.save()
+
+            else:   
+                cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang if lang else 'en')
 
 
         data = {
