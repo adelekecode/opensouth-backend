@@ -41,8 +41,6 @@ class OrganisationSerializer(serializers.ModelSerializer):
                 lang = lang.lang
             except ClientIP.DoesNotExist:
                 raise serializers.ValidationError("clientIP instance not found")
-            else:
-                raise serializers.ValidationError("lang_id is required")
         else:
             lang = "en"
 
@@ -81,8 +79,6 @@ class DatasetSerializer(serializers.ModelSerializer):
                 lang = lang.lang
             except ClientIP.DoesNotExist:
                 raise serializers.ValidationError("clientIP instance not found")
-            else:
-                raise serializers.ValidationError("lang_id is required")
         else:
             lang = "en"
             
@@ -134,6 +130,7 @@ class CategorySerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
 
         representation['description'] = TranslationMiddleware.translate_text(text=representation['description'], target_language=lang)
+        representation['name'] = TranslationMiddleware.translate_text(text=representation['name'], target_language=lang)
 
         return representation
 
