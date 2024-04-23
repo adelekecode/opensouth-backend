@@ -66,6 +66,12 @@ class PublicOrganisationView(generics.ListAPIView):
     search_fields = ['name']
     pagination_class = LimitOffsetPagination
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
     def list(self, request, *args, **kwargs):
 
@@ -86,7 +92,7 @@ class PublicOrganisationView(generics.ListAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
         return Response(serializer.data)
 
@@ -112,6 +118,12 @@ class PublicDatasetView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
     search_fields = ['title', 'category__name', 'tags__name', 'organisation__name']
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
     def list(self, request, *args, **kwargs):
@@ -168,7 +180,7 @@ class PublicDatasetView(generics.ListAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
         return Response(serializer.data)
     
@@ -180,6 +192,12 @@ class PublicDatasetDetailView(generics.RetrieveAPIView):
     queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 
@@ -213,7 +231,7 @@ class PopularDataset(APIView):
     def get(self, request):
 
         views = Datasets.objects.filter(is_deleted=False, status='published').order_by('-views')[:9]
-        serializer = DatasetSerializer(views, many=True)
+        serializer = DatasetSerializer(views, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
@@ -258,6 +276,12 @@ class PublicUserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.filter(is_deleted=False)
     lookup_field = 'pk'
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 
 class PublicUserDataset(generics.ListAPIView):
@@ -266,6 +290,12 @@ class PublicUserDataset(generics.ListAPIView):
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     pagination_class = LimitOffsetPagination
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
     def get_queryset(self):
@@ -294,7 +324,7 @@ class PublicPopularOrganisationDataset(APIView):
             return Response({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
 
         datasets = Datasets.objects.filter(is_deleted=False, status='published', organisation=organisation).order_by('-views')[:9]
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = DatasetSerializer(datasets, many=True, context={'request': request})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     
