@@ -93,9 +93,7 @@ class CustomUserViewSet(UserViewSet):
             )
             return Response(status=status.HTTP_204_NO_CONTENT)
         
-        # elif password=="google" and request.user.provider=="google":
-        #     self.perform_destroy(instance)
-        #     return Response(status=status.HTTP_204_NO_CONTENT)
+        
         else:
             raise AuthenticationFailed(detail={"message":"incorrect password"})
 
