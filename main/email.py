@@ -33,7 +33,7 @@ Open South.
         }
     )
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Invitation",
         body=message,
         html=html
@@ -69,7 +69,7 @@ If you think this was an error or unintended, feel free to reach out to our supp
     )
 
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Removal",
         body=message,
         html=html
@@ -104,7 +104,7 @@ If you think this was an error or unintended, feel free to reach out to our supp
     )
 
     send_email(
-        email=user.email,
+        recipient=user.email,
         subject="Open South - Organisation Request Declined",
         body=message,
         html=html
@@ -141,7 +141,7 @@ Verification Pin: {pin}
     )
     
     send_email(
-        email=email,
+        recipient=email,
         subject="Open South - New Organisation Created",
         body=message,
         html=html
@@ -154,13 +154,14 @@ Verification Pin: {pin}
 
 def dataset_created_mail(email, user, message):
 
-    message = f"""
+    body = f"""
 
 Dear {str(user.first_name).capitalize()},
 
 {message}
 
 If you have any questions or need assistance, please contact our support team at support@opensouth.io.
+
 Best regards,
 Open South.
 
@@ -168,16 +169,16 @@ Open South.
     html = render_to_string(
         'email/dataset.html',
         {
-            'content': message,
+            'content': str(message),
             'name' : str(user.first_name).title()
 
         }
     )
     
     send_email(
-        email=email,
+        recipient=email,
         subject="Open South - New Dataset Created",
-        body=message,
+        body=body,
         html=html
     )
 
@@ -203,7 +204,7 @@ Open South
 
 """
     send_email(
-        email=to,
+        recipient=to,
         subject="Open South - New Public Support Mail",
         body=body
     )

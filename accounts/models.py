@@ -8,7 +8,7 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, FileExtensionValidator
 from django.forms import model_to_dict
-
+from django.db.models import Sum
 from .managers import UserManager
 import uuid
 import random
@@ -66,6 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_deleted    = models.BooleanField(_('deleted'), default=False)
     date_joined   = models.DateTimeField(_('date joined'), auto_now_add=True)
     fcm_token = models.TextField(null=True)
+    lang = models.CharField(max_length=100, null=True)
     provider = models.CharField(_('provider'), max_length=255, default="email", choices=(('email',"email"),
                                                                                          ('google',"google")))
     
@@ -111,6 +112,32 @@ class User(AbstractBaseUser, PermissionsMixin):
             return data
         
         return None
+    
+    @property
+    def user_stats(self):
+        from main.models import Datasets, DatasetFiles
+
+        datasets = Datasets.objects.filter(user=self, type="individual", is_deleted=False)
+
+        data_count = datasets.count()
+        views = datasets.aggregate(views=Sum('views'))['views']
+        downloads = DatasetFiles.objects.filter(dataset__organisation__users=self, is_deleted=False).aggregate(downloads=Sum('download_count'))['downloads']
+
+
+        return {
+            "data_count": data_count,
+            "views": views,
+            "downloads": downloads
+        }
+
+
+
+
+
+
+
+
+
     
     def delete(self):
         

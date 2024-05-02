@@ -2,7 +2,6 @@ from django.contrib.auth import authenticate, get_user_model
 import os
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
-
 User = get_user_model()
 
 
@@ -24,6 +23,7 @@ def register_social_user(provider, email, name):
         
         else:
             registered_user = filtered_user_by_email[0]
+
         
             
         refresh = RefreshToken.for_user(registered_user)

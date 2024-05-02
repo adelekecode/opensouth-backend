@@ -2,7 +2,8 @@ from django.shortcuts import render
 from main.serializers import *
 from main.models import *
 from rest_framework import status
-from rest_framework.response import Response
+from .models import *
+from .serializers import *
 from accounts.permissions import *
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 # from accounts.permissions import *
@@ -24,6 +25,7 @@ from rest_framework.pagination import PageNumberPagination
 from .serializers import *
 from accounts.serializers import *
 from rest_framework import viewsets
+from rest_framework.response import Response
 # Create your views here.
 
 
@@ -40,7 +42,7 @@ class PublicCategoryView(APIView):
 
     def get(self, request):
         categories = Categories.objects.filter(is_deleted=False).order_by('name')
-        serializer = CategorySerializer(categories, many=True)
+        serializer = CategorySerializer(categories, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -64,6 +66,12 @@ class PublicOrganisationView(generics.ListAPIView):
     search_fields = ['name']
     pagination_class = LimitOffsetPagination
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
     def list(self, request, *args, **kwargs):
 
@@ -84,7 +92,7 @@ class PublicOrganisationView(generics.ListAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
         return Response(serializer.data)
 
@@ -110,6 +118,12 @@ class PublicDatasetView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # filterset_fields = ['category']
     search_fields = ['title', 'category__name', 'tags__name', 'organisation__name']
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
     def list(self, request, *args, **kwargs):
@@ -166,7 +180,7 @@ class PublicDatasetView(generics.ListAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
         return Response(serializer.data)
     
@@ -178,6 +192,12 @@ class PublicDatasetDetailView(generics.RetrieveAPIView):
     queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 
@@ -210,8 +230,8 @@ class PopularDataset(APIView):
 
     def get(self, request):
 
-        views = Datasets.objects.filter(is_deleted=False).order_by('-views')[:9]
-        serializer = DatasetSerializer(views, many=True)
+        views = Datasets.objects.filter(is_deleted=False, status='published').order_by('-views')[:9]
+        serializer = DatasetSerializer(views, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
@@ -256,6 +276,12 @@ class PublicUserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.filter(is_deleted=False)
     lookup_field = 'pk'
 
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 
 class PublicUserDataset(generics.ListAPIView):
@@ -264,6 +290,12 @@ class PublicUserDataset(generics.ListAPIView):
     serializer_class = DatasetSerializer
     queryset = Datasets.objects.filter(is_deleted=False, status='published').order_by('-created_at')
     pagination_class = LimitOffsetPagination
+
+    def get_serializer_context(self):
+       
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
     def get_queryset(self):
@@ -292,7 +324,7 @@ class PublicPopularOrganisationDataset(APIView):
             return Response({"error": "organisation not found"}, status=status.HTTP_404_NOT_FOUND)
 
         datasets = Datasets.objects.filter(is_deleted=False, status='published', organisation=organisation).order_by('-views')[:9]
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = DatasetSerializer(datasets, many=True, context={'request': request})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -347,9 +379,70 @@ class PublicLocationRequest(APIView):
             return Response({"message": "location updated"}, status=status.HTTP_200_OK)
         
         else:
-            location = LocationAnalysis.objects.create(country=country, dataset=dataset)
+            location = LocationAnalysis.objects.create(country=str(country).lower(), dataset=dataset, slug=slug)
             location.count += 1
             location.save()
 
             return Response({"message": "location updated"}, status=status.HTTP_200_OK)
+        
+
+
+
+
+
+class GetClientIP(APIView):
+
+    def get(self, request):
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+
+        lang = request.GET.get('lang', None)
+        id = request.GET.get('id', None)
+
+        langs = lang
+
+        if lang is None: 
+            lang = 'en'
+
+        if id:
+            if langs is None:
+                return Response({"error": "lang is required"}, status=403)
+            
+            cl_ip = ClientIP.objects.filter(pk=id).first()
+            if not cl_ip:
+                return Response({"error": "client ip not found"}, status=401)
+            cl_ip.lang = langs
+            cl_ip.save()
+
+        else:
+            if ClientIP.objects.filter(ip_address=ip).exists():
+
+                cl_ip = ClientIP.objects.filter(ip_address=ip).first()
+                cl_ip.lang = lang
+                cl_ip.save()
+
+            else:   
+                cl_ip = ClientIP.objects.create(ip_address=ip, lang=lang if lang else 'en')
+
+
+        data = {
+            "status": "accepted",
+            "lang_status": langs if langs else 'en- lang not provided',
+            "instance": ClientIPSerializer(cl_ip).data
+
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+
+        
+
+        
+
         
