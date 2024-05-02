@@ -2,7 +2,6 @@ from django.shortcuts import render
 from main.serializers import *
 from main.models import *
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from accounts.permissions import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -20,6 +19,7 @@ from accounts.serializers import *
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
 from .email import *
+from rest_framework.response import Response
 from main.email import *
 
 

@@ -1,7 +1,6 @@
 from accounts.permissions import *
 from .serializers import *
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
@@ -29,6 +28,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework.response import Response
 import requests
 import os
 
@@ -64,7 +64,7 @@ class CustomUserViewSet(UserViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_Response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -255,7 +255,7 @@ def logout_view(request):
     """Log out a user by blacklisting their refresh token then making use of django's internal logout function to flush out their session and completely log them out.
 
     Returns:
-        Json response with message of success and status code of 204.
+        Json Response with message of success and status code of 204.
     """
     
     serializer = LogoutSerializer(data=request.data)
@@ -286,7 +286,7 @@ def update_firebase_token(request):
     """Update the FCM token for a logged in use to enable push notifications
 
     Returns:
-        Json response with message of success and status code of 200.
+        Json Response with message of success and status code of 200.
     """
     
     serializer = FirebaseSerializer(data=request.data)

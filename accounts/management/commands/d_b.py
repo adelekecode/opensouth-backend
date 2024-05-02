@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from main.models import Datasets, Organisations
+from main.models import LocationAnalysis
 
 
 class Command(BaseCommand):
@@ -8,14 +8,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        orgs = Organisations.objects.filter(is_deleted=False)
+        orgs = LocationAnalysis.objects.filter()
 
-        for org in orgs:
-
-            count = Datasets.objects.filter(organisation=org).count()
-            org.dataset_count = count
-
-            org.save()
+        orgs.delete()
 
         self.stdout.write(self.style.SUCCESS("Successfully updated"))
 
